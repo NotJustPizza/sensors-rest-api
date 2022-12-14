@@ -1,0 +1,56 @@
+name: Validate code in pull request
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  python-black:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: get black version
+        run: |
+          export VERSION=$(grep -Po 'black==\K.*' requirements_dev.txt)
+          echo "::set-env name=BLACK_VERSION::$VERSION"
+      - name: run black
+        uses: psf/black@stable
+        with:
+          version: ${{ env.BLACK_VERSION }}
+
+  python-pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: build local docker image
+        run: |
+          docker build -t local .
+      - name: run pytest with coverage
+        run: |
+          docker run \
+            -v `pwd`/tests:/app/tests \
+            --entrypoint pytest \
+            local \
+              --cov src \
+              --cov-report xml:tests/result-coverage.xml \
+              --junitxml result-pytest.xml \
+              tests/unit
+      - name: publish results
+        uses: MishaKav/pytest-coverage-comment@v1.1.37
+        with:
+          pytest-xml-coverage-path: tests/result-coverage.xml
+          junitxml-path: tests/result-pytest.xml
+
+  terraform-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: terraform fmt
+        uses: dflook/terraform-fmt-check@v1.29.1
+        with:
+          path: terraform

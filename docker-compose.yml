@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  web:
+    container_name: web_container
+    build:
+      context: .
+      target: prod-env
+    ports:
+      - '8000:8000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    container_name: postgres_container
+    image: "postgres:15.0-alpine3.16"
+    user: postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+       - postgres:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+    postgres:

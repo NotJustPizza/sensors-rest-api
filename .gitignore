@@ -1,0 +1,13 @@
+# Local files
+.idea
+
+# Temporary files
+.cache
+__pycache__
+.pytest_cache
+.terraform
+.terraform.lock.hcl
+
+# Configuration vars
+config.tfbackend
+config.tfvars

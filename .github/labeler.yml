@@ -1,0 +1,22 @@
+ci:
+  - requirements_dev.txt
+  - Dockerfile
+  - docker-compose.yml
+  - .github/**
+  - .pre-commit-config.yaml
+  - .gitignore
+
+source:
+  - requirements.txt
+  - src/**
+
+infra:
+  - .terraform-version
+  - terraform/**
+
+docs:
+  - README.md
+  - LICENSE
+
+test:
+  - tests/**

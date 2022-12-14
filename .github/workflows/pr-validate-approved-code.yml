@@ -1,0 +1,61 @@
+name: Validate approved code in pull request
+concurrency: pr-validate-approved-code
+on:
+  pull_request_review:
+    types:
+      - submitted
+
+jobs:
+  terraform-plan-dev:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: create config files
+        run: |
+          cat > config.tfbackend << EOL
+            ${{ secrets.CONFIG_TFBACKEND_DEV }}
+          EOL
+          cat > config.tfvars << EOL
+            ${{ secrets.CONFIG_TFVARS_DEV }}
+            repository="${{ github.repository }}"
+          EOL
+      - name: terraform validate
+        uses: dflook/terraform-validate@v1.29.1
+        with:
+          path: terraform/envs/dev
+          backend_config_file: config.tfbackend
+      - name: terraform plan
+        uses: dflook/terraform-plan@v1.29.1
+        with:
+          path: terraform/envs/dev
+          backend_config_file: config.tfbackend
+          var_file: config.tfvars
+
+  terraform-plan-prod:
+    if: github.event.review.state == 'approved'
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: create config files
+        run: |
+          cat > config.tfbackend << EOL
+            ${{ secrets.CONFIG_TFBACKEND_PROD }}
+          EOL
+          cat > config.tfvars << EOL
+            ${{ secrets.CONFIG_TFVARS_PROD }}
+            repository="${{ github.repository }}"
+          EOL
+      - name: terraform validate
+        uses: dflook/terraform-validate@v1.29.1
+        with:
+          path: terraform/envs/prod
+          backend_config_file: config.tfbackend
+      - name: terraform plan
+        uses: dflook/terraform-plan@v1.29.1
+        with:
+          path: terraform/envs/prod
+          backend_config_file: config.tfbackend
+          var_file: config.tfvars

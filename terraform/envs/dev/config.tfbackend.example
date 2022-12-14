@@ -1,0 +1,5 @@
+bucket     = "my_bucket_name"
+key        = "prod"
+access_key = "my_access_key"
+secret_key = "my_secret_key"
+region     = "my_region"

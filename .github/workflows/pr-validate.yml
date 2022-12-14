@@ -1,0 +1,26 @@
+name: Validate pull request
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - edited
+
+jobs:
+  validate-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: deepakputhraya/action-branch-name@5f1cc199284b75145ec2d13434422e6987cf6af8
+        with:
+          regex: '[a-z]+\/[a-z-]+'
+          allowed_prefixes: 'feat,fix,docs,lint,refactor,test,chore'
+          ignore: main
+          min_length: 5
+          max_length: 25
+
+  validate-commit-messages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - uses: webiny/action-conventional-commits@v1.1.0

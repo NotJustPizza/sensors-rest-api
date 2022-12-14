@@ -1,0 +1,14 @@
+environment = "dev"
+credentials = {
+  cloudflare = {
+    email = "my_cloudflare_email"
+    token = "myc_cloudflare_token"
+  }
+  vultr = {
+    token = "my_vultr_token"
+  }
+  aws = {
+    access_key = "my_access_key"
+    secret_key = "my_secret_key"
+  }
+}
