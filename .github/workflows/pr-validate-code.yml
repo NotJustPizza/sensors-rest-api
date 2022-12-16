@@ -54,3 +54,23 @@ jobs:
         uses: dflook/terraform-fmt-check@v1.29.1
         with:
           path: terraform
+
+  tflint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: get tflint version
+        run: |
+          export VERSION=$(cat .tflint-version)
+          echo "::set-env name=TFLINT_VERSION::$VERSION"
+      - name: tflint
+        uses: reviewdog/action-tflint@v1.17.2
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: "terraform"
+          reporter: github-pr-review
+          fail_on_error: "true"
+          filter_mode: "nofilter"
+          tflint_version: ${{ env.TFLINT_VERSION }}
+          flags: "--module"

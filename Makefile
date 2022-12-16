@@ -1,14 +1,14 @@
-DEV_IMAGE_NAME    = dev-env
-TERRAFORM_VERSION = $(shell cat .terraform-version)
+DEV_IMAGE_NAME = dev-env
 
-docker-build-dev-image: IMAGE=$(DEV_IMAGE_NAME)
-docker-build-dev-image: IMAGE_VERSION=latest
-docker-build-dev-image:
+docker-build: IMAGE=$(DEV_IMAGE_NAME)
+docker-build: IMAGE_VERSION=latest
+docker-build:
 	docker build . -t $(IMAGE):$(IMAGE_VERSION)
 
+_docker-run: IMAGE=$(DEV_IMAGE_NAME)
+_docker-run: IMAGE_VERSION=latest
 _docker-run: PROJECT_DIR=$(shell pwd)
 _docker-run: PROJECT_MOUNT_DIR=/project
-_docker-run: IMAGE_ENV=PRE_COMMIT_HOME=/project/.cache/pre-commit
 _docker-run:
 	test -n "$(ENTRYPOINT)"
 	test -n "$(IMAGE)"
@@ -19,33 +19,29 @@ _docker-run:
 		--entrypoint $(ENTRYPOINT) \
 		-v "$(PROJECT_DIR):$(PROJECT_MOUNT_DIR)" \
 		-w $(IMAGE_WORKDIR) \
-		-e "$(IMAGE_ENV)" \
+		$(DOCKER_ARGS) \
 	$(IMAGE):$(IMAGE_VERSION) $(IMAGE_ARGS)
 
-_docker-run-dev-image: IMAGE=$(DEV_IMAGE_NAME)
-_docker-run-dev-image: IMAGE_VERSION=latest
-_docker-run-dev-image: IMAGE_WORKDIR=/project
-_docker-run-dev-image: _docker-run
+_docker-run-default: IMAGE_WORKDIR=/project
+_docker-run-default: _docker-run
 
 pre-commit-run: ENTRYPOINT=pre-commit
 pre-commit-run: IMAGE_ARGS=run --all-files
-pre-commit-run: _docker-run-dev-image
+pre-commit-run: DOCKER_ARGS=-e PRE_COMMIT_HOME=.cache/pre-commit $(CUSTOM_DOCKER_ARGS)
+pre-commit-run: _docker-run-default
 
-pre-commit-install-hooks: ENTRYPOINT=pre-commit
-pre-commit-install-hooks: IMAGE_ARGS=install-hooks
-pre-commit-install-hooks: _docker-run-dev-image
+pre-commit-install:
+	cp pre-commit-hook.sh .git/hooks/pre-commit
 
 python-black: ENTRYPOINT=black
 python-black: IMAGE_ARGS=.
-python-black: _docker-run-dev-image
+python-black: _docker-run-default
 
 python-pytest: ENTRYPOINT=pytest
 python-pytest: IMAGE_ARGS=.
-python-pytest: _docker-run-dev-image
+python-pytest: _docker-run-default
 
 _docker-run-terraform: ENTRYPOINT=terraform
-_docker-run-terraform: IMAGE=hashicorp/terraform
-_docker-run-terraform: IMAGE_VERSION=$(TERRAFORM_VERSION)
 _docker-run-terraform: _docker-run
 
 terraform-fmt: IMAGE_WORKDIR=/project/terraform

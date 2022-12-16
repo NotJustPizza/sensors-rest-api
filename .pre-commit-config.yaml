@@ -13,3 +13,11 @@ repos:
   rev: 22.10.0
   hooks:
   - id: black
+- repo: https://github.com/gruntwork-io/pre-commit
+  rev: v0.1.17
+  hooks:
+  - id: terraform-validate
+  - id: terraform-fmt
+  - id: tflint
+    args:
+      - "--module"
