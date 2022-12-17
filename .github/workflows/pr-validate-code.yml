@@ -37,7 +37,7 @@ jobs:
             local \
               --cov src \
               --cov-report xml:tests/result-coverage.xml \
-              --junitxml result-pytest.xml \
+              --junitxml tests/result-pytest.xml \
               tests/unit
       - name: publish results
         uses: MishaKav/pytest-coverage-comment@v1.1.37
