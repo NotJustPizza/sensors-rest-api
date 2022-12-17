@@ -23,6 +23,9 @@ jobs:
 
   python-pytest:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -57,6 +60,9 @@ jobs:
 
   tflint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
       - name: checkout
         uses: actions/checkout@v3
