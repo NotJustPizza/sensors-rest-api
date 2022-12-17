@@ -4,7 +4,7 @@ from fastapi.testclient import TestClient
 from tortoise.exceptions import ValidationError
 from ..models import BaseTestModel
 
-pytestmark = mark.asyncio
+pytestmark = mark.anyio
 
 
 async def test_create_invalid_base_model(client: TestClient):
