@@ -4,7 +4,7 @@ RUN apk add --no-cache build-base
 
 WORKDIR /app
 
-COPY requirements.txt /app/requirements.txt
+COPY requirements.txt ./
 RUN pip install -r requirements.txt --no-cache-dir
 
 COPY /src /app/src
