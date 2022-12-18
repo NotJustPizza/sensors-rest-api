@@ -1,4 +1,5 @@
 asyncpg==0.27.0
 fastapi==0.88.0
+fastapi-pagination==0.11.1
 tortoise-orm==0.19.2
 uvicorn==0.20.0

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi_pagination import add_pagination
 from tortoise.contrib.fastapi import register_tortoise
 from .routers import router
 
@@ -21,3 +22,5 @@ register_tortoise(
     generate_schemas=True,
     add_exception_handlers=True,
 )
+
+add_pagination(app)

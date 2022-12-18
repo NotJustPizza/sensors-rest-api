@@ -1,6 +1,7 @@
-from typing import List
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
+from fastapi_pagination import Page
+from fastapi_pagination.ext.tortoise import paginate
 from tortoise.contrib.fastapi import HTTPNotFoundError
 from .models import *
 
@@ -12,9 +13,9 @@ async def index():
     return JSONResponse("Welcome!")
 
 
-@router.get("/users", response_model=List[UserOutPydantic])
+@router.get("/users", response_model=Page[UserOutPydantic])
 async def retrieve_users():
-    return await UserOutPydantic.from_queryset(User.all())
+    return await paginate(User.all())
 
 
 @router.post("/users", response_model=UserOutPydantic, status_code=201)
