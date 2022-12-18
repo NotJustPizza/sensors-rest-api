@@ -15,7 +15,13 @@ def assert_user_json(user_json: dict, user: User):
     assert user_json["created_at"] == user.created_at.isoformat()
     assert is_date(user_json["modified_at"])
     assert user_json["modified_at"] == user.modified_at.isoformat()
-    return True
+
+
+def assert_json_pagination(json, total: int = 3, page: int = 1, size: int = 50):
+    assert json["total"] == total
+    assert len(json["items"]) == total
+    assert json["page"] == page
+    assert json["size"] == size
 
 
 @fixture(scope="function", name="users")
@@ -39,12 +45,13 @@ async def test_index_page(client: TestClient):
 
 async def test_retrieve_users(client: TestClient, users: List[User]):
     response = client.get("/users")
-    users_json = response.json()
+    json = response.json()
 
     assert response.status_code == 200
+    assert_json_pagination(json)
 
-    for i, user_json in enumerate(users_json):
-        assert assert_user_json(users_json[i], users[i])
+    for i in range(json["total"]):
+        assert_user_json(json["items"][i], users[i])
 
 
 async def test_retrieve_user(client: TestClient, users: List[User]):
@@ -54,7 +61,7 @@ async def test_retrieve_user(client: TestClient, users: List[User]):
     user_json = response.json()
 
     assert response.status_code == 200
-    assert assert_user_json(user_json, user)
+    assert_user_json(user_json, user)
 
 
 async def test_create_user(client: TestClient):
@@ -63,4 +70,4 @@ async def test_create_user(client: TestClient):
     user = await User.get(name="user")
 
     assert response.status_code == 201
-    assert assert_user_json(user_json, user)
+    assert_user_json(user_json, user)
