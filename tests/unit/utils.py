@@ -16,3 +16,10 @@ def is_date(data):
         return True
     except ValueError:
         raise ValueError(f"{data} is not date")
+
+
+def assert_json_pagination(json, total, page: int = 1, size: int = 50):
+    assert json["total"] == total
+    assert len(json["items"]) == total
+    assert json["page"] == page
+    assert json["size"] == size
