@@ -60,6 +60,9 @@ terraform-plan-dev: _docker-run-terraform-dev
 terraform-apply-dev: IMAGE_ARGS=apply -var-file config.tfvars
 terraform-apply-dev: _docker-run-terraform-dev
 
+terraform-destroy-dev: IMAGE_ARGS=destroy -var-file config.tfvars
+terraform-destroy-dev: _docker-run-terraform-dev
+
 _docker-run-terraform-prod: IMAGE_WORKDIR=/project/terraform/envs/prod
 _docker-run-terraform-prod: _docker-run-terraform
 
@@ -71,3 +74,6 @@ terraform-plan-prod: _docker-run-terraform-prod
 
 terraform-apply-prod: IMAGE_ARGS=apply -var-file config.tfvars
 terraform-apply-prod: _docker-run-terraform-prod
+
+terraform-destroy-prod: IMAGE_ARGS=destroy -var-file config.tfvars
+terraform-destroy-prod: _docker-run-terraform-prod
