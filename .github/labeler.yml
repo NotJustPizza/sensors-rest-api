@@ -1,22 +1,25 @@
 ci:
-  - requirements_dev.txt
-  - Dockerfile
-  - docker-compose.yml
+  - .gitignore
   - .github/**
   - .pre-commit-config.yaml
-  - .gitignore
-
-source:
-  - requirements.txt
-  - src/**
+  - pre-commit-hook.sh
+  - Dockerfile
+  - docker-compose.yml
+  - Makefile
 
 infra:
   - .terraform-version
   - terraform/**
 
 docs:
-  - README.md
   - LICENSE
+  - README.md
 
-test:
+source:
+  - requirements.txt
+  - src/**
+
+tests:
+  - .tflint-version
+  - requirements_dev.txt
   - tests/**
