@@ -1,10 +1,17 @@
-name: Validate code in pull request
+name: Validate python code in pull request
 on:
   pull_request:
     types:
       - opened
       - reopened
       - synchronize
+    paths:
+      - .github/workflows/pr-validate-python-code.yml
+      - Dockerfile
+      - tests/**
+      - src/**
+      - requirements.txt
+      - requirements_dev.txt
 
 jobs:
   python-black:
@@ -47,36 +54,3 @@ jobs:
         with:
           pytest-xml-coverage-path: tests/result-coverage.xml
           junitxml-path: tests/result-pytest.xml
-
-  terraform-fmt:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v3
-      - name: terraform fmt
-        uses: dflook/terraform-fmt-check@v1.29.1
-        with:
-          path: terraform
-
-  tflint:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-    steps:
-      - name: checkout
-        uses: actions/checkout@v3
-      - name: get tflint version
-        run: |
-          export VERSION=$(cat .tflint-version)
-          echo "TFLINT_VERSION=$VERSION" >> $GITHUB_ENV
-      - name: tflint
-        uses: reviewdog/action-tflint@v1.17.2
-        with:
-          github_token: ${{ secrets.github_token }}
-          working_directory: "terraform"
-          reporter: github-pr-review
-          fail_on_error: "true"
-          filter_mode: "nofilter"
-          tflint_version: ${{ env.TFLINT_VERSION }}
-          flags: "--module"

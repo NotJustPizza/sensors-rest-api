@@ -1,13 +1,51 @@
-name: Validate approved code in pull request
-concurrency: pr-validate-approved-code
+name: Validate terraform code in pull request
 on:
-  pull_request_review:
+  pull_request:
     types:
-      - submitted
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - .github/workflows/pr-validate-terraform-code.yml
+      - .terraform-version
+      - .tflint-version
+      - terraform/**
 
 jobs:
+  tflint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: get tflint version
+        run: |
+          export VERSION=$(cat .tflint-version)
+          echo "TFLINT_VERSION=$VERSION" >> $GITHUB_ENV
+      - name: tflint
+        uses: reviewdog/action-tflint@v1.17.2
+        with:
+          github_token: ${{ secrets.github_token }}
+          working_directory: "terraform"
+          reporter: github-pr-review
+          fail_on_error: "true"
+          filter_mode: "nofilter"
+          tflint_version: ${{ env.TFLINT_VERSION }}
+          flags: "--module"
+
+  terraform-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: terraform fmt
+        uses: dflook/terraform-fmt-check@v1.29.1
+        with:
+          path: terraform
+
   terraform-plan-dev:
-    if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -34,7 +72,6 @@ jobs:
           var_file: config.tfvars
 
   terraform-plan-prod:
-    if: github.event.review.state == 'approved'
     runs-on: ubuntu-latest
     steps:
       - name: checkout
