@@ -1,7 +1,7 @@
-from typing import List
 from fastapi.testclient import TestClient
 from pytest import mark, fixture
-from src.main.models import User
+from typing import List
+from app.models.user import User
 from ..utils import is_date, is_uuid, assert_json_pagination
 
 pytestmark = mark.anyio
@@ -33,13 +33,6 @@ async def populate_users():
         users.append(user)
 
     return users
-
-
-async def test_index_page(client: TestClient):
-    response = client.get("/")
-
-    assert response.status_code == 200
-    assert response.json() == "Welcome!"
 
 
 async def test_retrieve_users(client: TestClient, users: List[User]):

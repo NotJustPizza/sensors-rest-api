@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from tortoise.contrib.test import initializer, finalizer
 from typing import Iterator
 from pytest import fixture
-from src.main.main import app, db_models
+from app.main import app, db_models
 
 
 @fixture(scope="function")
@@ -21,7 +21,7 @@ def event_loop() -> Iterator[AbstractEventLoop]:
 
 @fixture(scope="function")
 def client(request, event_loop: BaseEventLoop) -> Iterator[TestClient]:
-    db_models.append("tests.unit.models")
+    db_models.append("tests.unit.models.fixtures")
     initializer(db_models, loop=event_loop)
     with TestClient(app) as c:
         yield c

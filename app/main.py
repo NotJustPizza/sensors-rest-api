@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 from tortoise.contrib.fastapi import register_tortoise
-from .routers import root_router, users_router
+from .routers import routers
 
 app = FastAPI(
     title="SensorsAPI",
@@ -11,11 +11,11 @@ app = FastAPI(
 )
 
 
-app.include_router(root_router)
-app.include_router(users_router)
+for router in routers:
+    app.include_router(router)
 
 db_models = [
-    "src.main.models",
+    "app.models.user",
 ]
 
 register_tortoise(

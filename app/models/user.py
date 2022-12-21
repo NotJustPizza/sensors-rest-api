@@ -2,31 +2,10 @@ import re
 from hashlib import sha256
 from tortoise import fields
 from tortoise.contrib.pydantic import pydantic_model_creator
-from tortoise.models import Model
-from tortoise.signals import Signals, pre_save
-from tortoise.validators import RegexValidator, MinLengthValidator, MaxLengthValidator
+from tortoise.signals import pre_save
+from tortoise.validators import RegexValidator
 from typing import Type, List
-
-
-class AbstractModel(Model):
-    uuid = fields.UUIDField(pk=True)
-
-    class Meta:
-        abstract = True
-
-
-class NameMixin:
-    name = fields.CharField(
-        32, unique=True, validators=[RegexValidator(r"^[a-z]{3,24}$", flags=re.ASCII)]
-    )
-
-    def __str__(self):
-        return self.name
-
-
-class TimestampMixin:
-    created_at = fields.DatetimeField(null=False, auto_now_add=True)
-    modified_at = fields.DatetimeField(null=False, auto_now=True)
+from .base import TimestampMixin, NameMixin, AbstractModel
 
 
 class User(TimestampMixin, NameMixin, AbstractModel):

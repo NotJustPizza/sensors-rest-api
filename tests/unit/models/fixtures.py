@@ -1,4 +1,4 @@
-from src.main.models import AbstractModel, NameMixin, TimestampMixin
+from app.models.base import AbstractModel, NameMixin, TimestampMixin
 
 
 class BaseTestModel(TimestampMixin, NameMixin, AbstractModel):

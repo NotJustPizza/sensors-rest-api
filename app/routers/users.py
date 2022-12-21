@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from fastapi_pagination import Page
 from fastapi_pagination.ext.tortoise import paginate
 from tortoise.contrib.fastapi import HTTPNotFoundError
-from ..models import *
+from ..models.user import User, UserInPydantic, UserOutPydantic
 
 router = APIRouter(prefix="/users", tags=["users"])
 

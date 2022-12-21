@@ -8,7 +8,7 @@ docker-build:
 _docker-run: IMAGE=$(DEV_IMAGE_NAME)
 _docker-run: IMAGE_VERSION=latest
 _docker-run: PROJECT_DIR=$(shell pwd)
-_docker-run: PROJECT_MOUNT_DIR=/project
+_docker-run: PROJECT_MOUNT_DIR=/mnt/project
 _docker-run:
 	test -n "$(ENTRYPOINT)"
 	test -n "$(IMAGE)"
@@ -22,7 +22,7 @@ _docker-run:
 		$(DOCKER_ARGS) \
 	$(IMAGE):$(IMAGE_VERSION) $(IMAGE_ARGS)
 
-_docker-run-default: IMAGE_WORKDIR=/project
+_docker-run-default: IMAGE_WORKDIR=/mnt/project
 _docker-run-default: _docker-run
 
 pre-commit-run: ENTRYPOINT=pre-commit
@@ -44,11 +44,11 @@ python-pytest: _docker-run-default
 _docker-run-terraform: ENTRYPOINT=terraform
 _docker-run-terraform: _docker-run
 
-terraform-fmt: IMAGE_WORKDIR=/project/terraform
+terraform-fmt: IMAGE_WORKDIR=/mnt/project/terraform
 terraform-fmt: IMAGE_ARGS=fmt -recursive .
 terraform-fmt: _docker-run-terraform
 
-_docker-run-terraform-dev: IMAGE_WORKDIR=/project/terraform/envs/dev
+_docker-run-terraform-dev: IMAGE_WORKDIR=/mnt/project/terraform/envs/dev
 _docker-run-terraform-dev: _docker-run-terraform
 
 terraform-init-dev: IMAGE_ARGS=init -backend-config config.tfbackend
@@ -63,7 +63,7 @@ terraform-apply-dev: _docker-run-terraform-dev
 terraform-destroy-dev: IMAGE_ARGS=destroy -var-file config.tfvars
 terraform-destroy-dev: _docker-run-terraform-dev
 
-_docker-run-terraform-prod: IMAGE_WORKDIR=/project/terraform/envs/prod
+_docker-run-terraform-prod: IMAGE_WORKDIR=/mnt/project/terraform/envs/prod
 _docker-run-terraform-prod: _docker-run-terraform
 
 terraform-init-prod: IMAGE_ARGS=init -backend-config config.tfbackend

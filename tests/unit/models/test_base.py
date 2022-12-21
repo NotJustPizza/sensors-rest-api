@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta, timezone
-from pytest import raises, mark
 from fastapi.testclient import TestClient
 from tortoise.exceptions import ValidationError
-from ..models import BaseTestModel
+from pytest import raises, mark
+from .fixtures import BaseTestModel
 
 pytestmark = mark.anyio
 
