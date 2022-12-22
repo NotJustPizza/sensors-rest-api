@@ -42,6 +42,7 @@ python-pytest: IMAGE_ARGS=.
 python-pytest: _docker-run-default
 
 _docker-run-terraform: ENTRYPOINT=terraform
+_docker-run-terraform: DOCKER_ARGS=-it
 _docker-run-terraform: _docker-run
 
 terraform-fmt: IMAGE_WORKDIR=/mnt/project/terraform
