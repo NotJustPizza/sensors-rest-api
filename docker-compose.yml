@@ -6,8 +6,12 @@ services:
     build:
       context: .
       target: prod-env
+    environment:
+      DB_PASS: ${DB_PASS:-changeme}
     ports:
       - '8000:8000'
+    links:
+      - "postgres:database"
     depends_on:
       postgres:
         condition: service_healthy
@@ -16,7 +20,8 @@ services:
     image: "postgres:15.0-alpine3.16"
     user: postgres
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${DB_PASS:-changeme}
+      POSTGRES_DB: sensors
     volumes:
        - postgres:/var/lib/postgresql/data
     ports:
