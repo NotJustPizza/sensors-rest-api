@@ -11,6 +11,9 @@ terraform {
     kubernetes = {
       version = "~> 2.15.0"
     }
+    random = {
+      version = "3.4.3"
+    }
   }
 
   required_version = "~> 1.3.4"

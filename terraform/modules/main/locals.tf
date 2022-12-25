@@ -3,7 +3,14 @@ locals {
     base64decode(vultr_kubernetes.k8s.kube_config)
   )
 
-  labels = {
+  rest_api_labels = {
+    application = "rest-api"
+    project     = var.project
+    environment = var.environment
+  }
+
+  database_labels = {
+    application = "database"
     project     = var.project
     environment = var.environment
   }

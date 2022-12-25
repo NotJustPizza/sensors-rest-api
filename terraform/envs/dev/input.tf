@@ -54,18 +54,17 @@ variable "k8s_rest_api_config" {
   default = {
     replicas = 1
     limits = {
-      cpu    = "0.5"
-      memory = "512Mi"
+      cpu    = "0.2"
+      memory = "256Mi"
     }
     requests = {
-      cpu    = "0.2"
+      cpu    = "0.1"
       memory = "100Mi"
     }
   }
 }
 variable "k8s_database_config" {
   type = object({
-    replicas = number
     limits = object({
       cpu    = string
       memory = string
@@ -74,16 +73,17 @@ variable "k8s_database_config" {
       cpu    = string
       memory = string
     })
+    volume_size = string
   })
   default = {
-    replicas = 1
     limits = {
-      cpu    = "0.5"
+      cpu    = "0.2"
       memory = "512Mi"
     }
     requests = {
-      cpu    = "0.2"
+      cpu    = "0.1"
       memory = "100Mi"
     }
+    volume_size = "10Gi"
   }
 }

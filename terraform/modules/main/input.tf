@@ -49,7 +49,6 @@ variable "k8s_rest_api_config" {
 }
 variable "k8s_database_config" {
   type = object({
-    replicas = number
     limits = object({
       cpu    = string
       memory = string
@@ -58,5 +57,6 @@ variable "k8s_database_config" {
       cpu    = string
       memory = string
     })
+    volume_size = string
   })
 }

@@ -1,3 +1,5 @@
+data "cloudflare_ip_ranges" "cloudflare" {}
+
 data "vultr_region" "amsterdam" {
   filter {
     name   = "city"
