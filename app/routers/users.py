@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi_pagination import Page
 from fastapi_pagination.ext.tortoise import paginate
+from uuid import UUID
 from tortoise.contrib.fastapi import HTTPNotFoundError
 from ..models.user import User, UserInPydantic, UserOutPydantic
 
@@ -19,12 +20,12 @@ async def create_user(data: UserInPydantic):
 
 
 @router.get("/{uuid}", response_model=UserOutPydantic)
-async def retrieve_user(uuid: str):
+async def retrieve_user(uuid: UUID):
     user = await User.get(pk=uuid)
     return await UserOutPydantic.from_tortoise_orm(user)
 
 
 @router.post("/{uuid}", response_model=UserOutPydantic)
-async def update_user(uuid: str, data: UserInPydantic):
+async def update_user(uuid: UUID, data: UserInPydantic):
     user = User.filter(pk=uuid).update(**data.dict(exclude_unset=True))
     return await UserOutPydantic.from_tortoise_orm(user)
