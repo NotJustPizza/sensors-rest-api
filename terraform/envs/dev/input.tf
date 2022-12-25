@@ -21,6 +21,10 @@ variable "repository" {
   type    = string
   default = "NotJustPizza/sensors-rest-api"
 }
+variable "k8s_version" {
+  type    = string
+  default = null
+}
 variable "k8s_nodes_config" {
   type = object({
     node_quantity = number

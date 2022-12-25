@@ -23,6 +23,9 @@ variable "credentials" {
     })
   })
 }
+variable "k8s_version" {
+  type = string
+}
 variable "k8s_nodes_config" {
   type = object({
     node_quantity = number

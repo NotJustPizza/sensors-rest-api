@@ -1,7 +1,7 @@
 resource "vultr_kubernetes" "k8s" {
   region  = data.vultr_region.amsterdam.id
   label   = "k8s-${var.project}-${var.environment}"
-  version = "v1.24.4+1"
+  version = coalesce(var.k8s_version, "v1.25.4+1")
 
   node_pools {
     node_quantity = var.k8s_nodes_config.node_quantity
@@ -56,22 +56,6 @@ resource "kubernetes_deployment" "rest_api" {
   }
 }
 
-resource "kubernetes_persistent_volume_claim" "database_volume_claim" {
-  metadata {
-    name   = "k8s-deploy-${var.project}-${var.environment}-database-volume-claim"
-    labels = local.labels
-  }
-  spec {
-    access_modes = ["ReadWriteOnce"]
-    resources {
-      requests = {
-        storage = "10Gi"
-      }
-    }
-    storage_class_name = "vultr-block-storage"
-  }
-}
-
 resource "kubernetes_deployment" "database" {
   metadata {
     name   = "k8s-deploy-${var.project}-${var.environment}-database"
@@ -100,25 +84,12 @@ resource "kubernetes_deployment" "database" {
             requests = var.k8s_database_config.requests
           }
 
-          volume_mount {
-            mount_path = "/var/lib/postgresql/data"
-            name       = "database-volume"
-          }
-
           liveness_probe {
             exec {
               command = ["/bin/sh -c exec pg_isready"]
             }
             initial_delay_seconds = 10
             period_seconds        = 10
-          }
-        }
-
-        volume {
-          name = "database-volume"
-
-          persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.database_volume_claim.id
           }
         }
       }
