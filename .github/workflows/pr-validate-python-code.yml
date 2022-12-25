@@ -36,15 +36,15 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      - name: build local docker image
+      - name: build dev docker image
         run: |
-          docker build -t local .
+          docker build . --target dev-env -t dev
       - name: run pytest with coverage
         run: |
           docker run \
             -v `pwd`/tests:/app/tests \
             --entrypoint pytest \
-            local \
+            dev \
               --cov src \
               --cov-report xml:tests/result-coverage.xml \
               --junitxml tests/result-pytest.xml \
