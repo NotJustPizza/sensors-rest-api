@@ -19,9 +19,7 @@ for router in routers:
 
 add_pagination(app)
 
-db_models = [
-    "app.models.user",
-]
+db_models = ["app.models.user", "app.models.organization"]
 
 register_tortoise(
     app,

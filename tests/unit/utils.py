@@ -1,5 +1,7 @@
-from uuid import UUID
 from dateutil.parser import parse as parse_date
+from uuid import UUID
+from typing import Any, Dict, List, Type
+from app.models.base import AbstractModel
 from app.models.user import User
 
 
@@ -12,7 +14,7 @@ class AuthContext:
         self.password = password
 
 
-def is_uuid(data):
+def is_uuid(data: Any) -> bool:
     try:
         UUID(str(data))
         return True
@@ -20,7 +22,7 @@ def is_uuid(data):
         raise ValueError(f"{data} is not UUID")
 
 
-def is_date(data):
+def is_date(data: Any) -> bool:
     try:
         parse_date(data, fuzzy=False)
         return True
@@ -28,8 +30,12 @@ def is_date(data):
         raise ValueError(f"{data} is not date")
 
 
-def assert_json_pagination(json, total, page: int = 1, size: int = 50):
-    assert json["total"] == total
-    assert len(json["items"]) == total
-    assert json["page"] == page
-    assert json["size"] == size
+async def populate_objects(
+    data: List[Dict[str, str]], model: Type[AbstractModel]
+) -> List[AbstractModel]:
+    objs = []
+    for args in data:
+        obj = await model.create(**args)
+        objs.append(obj)
+
+    return objs

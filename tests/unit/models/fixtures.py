@@ -1,5 +1,5 @@
 from app.models.base import AbstractModel, NameMixin, TimestampMixin
 
 
-class BaseTestModel(TimestampMixin, NameMixin, AbstractModel):
+class BaseTestModel(NameMixin, TimestampMixin, AbstractModel):
     pass
