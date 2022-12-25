@@ -38,7 +38,7 @@ python-black: IMAGE_ARGS=.
 python-black: _docker-run-default
 
 python-pytest: ENTRYPOINT=pytest
-python-pytest: IMAGE_ARGS=.
+python-pytest: IMAGE_ARGS=. --verbose
 python-pytest: _docker-run-default
 
 _docker-run-terraform: ENTRYPOINT=terraform
