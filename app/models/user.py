@@ -1,14 +1,14 @@
 import re
-from hashlib import sha256
-from tortoise import fields
+from argon2 import PasswordHasher
+from tortoise import fields, BaseDBAsyncClient
 from tortoise.contrib.pydantic import pydantic_model_creator
 from tortoise.signals import pre_save
 from tortoise.validators import RegexValidator
-from typing import Type, List
-from .base import TimestampMixin, NameMixin, AbstractModel
+from typing import Type, List, Optional
+from .base import TimestampMixin, AbstractModel
 
 
-class User(TimestampMixin, NameMixin, AbstractModel):
+class User(TimestampMixin, AbstractModel):
     email = fields.CharField(
         255,
         unique=True,
@@ -19,18 +19,20 @@ class User(TimestampMixin, NameMixin, AbstractModel):
             )
         ],
     )
-    password = fields.CharField(64, null=True)
+    password = fields.CharField(97, null=True)
+    is_active = fields.BooleanField(null=False, default=True)
 
 
 @pre_save(User)
 async def user_pre_save(
-    sender: "Type[User]",
+    sender: Type[User],
     instance: User,
-    using_db: "Optional[BaseDBAsyncClient]",
+    using_db: Optional[BaseDBAsyncClient],
     update_fields: List[str],
 ) -> None:
-    if not update_fields or "password" in update_fields:
-        instance.password = sha256(str(instance.password).encode("utf-8")).hexdigest()
+    if (not update_fields or "password" in update_fields) and instance.password:
+        hasher = PasswordHasher()
+        instance.password = hasher.hash(instance.password)
 
 
 UserInPydantic = pydantic_model_creator(

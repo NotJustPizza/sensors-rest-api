@@ -1,5 +1,15 @@
 from uuid import UUID
 from dateutil.parser import parse as parse_date
+from app.models.user import User
+
+
+class AuthContext:
+    user: User
+    password: str
+
+    def __init__(self, user, password):
+        self.user = user
+        self.password = password
 
 
 def is_uuid(data):

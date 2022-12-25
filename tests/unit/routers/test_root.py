@@ -1,23 +1,22 @@
 from fastapi.testclient import TestClient
 from pytest import mark
 
-
 pytestmark = mark.anyio
 
 
-async def test_index_page(client: TestClient):
-    response = client.get("/")
+async def test_index_page(logged_client: TestClient):
+    response = logged_client.get("/")
 
     assert response.status_code == 200
-    assert response.json() == "Welcome!"
+    assert response.json() == "Welcome auth@example.com!"
 
 
 prefixes = ["/users"]
 
 
 @mark.parametrize("prefix", prefixes)
-async def test_resource_with_invalid_uuid(client: TestClient, prefix: str):
-    response = client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac0")
+async def test_resource_with_invalid_uuid(logged_client: TestClient, prefix: str):
+    response = logged_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac0")
     json = response.json()
 
     assert response.status_code == 422
@@ -26,8 +25,8 @@ async def test_resource_with_invalid_uuid(client: TestClient, prefix: str):
 
 
 @mark.parametrize("prefix", prefixes)
-async def test_resource_with_inexistent_uuid(client: TestClient, prefix: str):
-    response = client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac008f")
+async def test_resource_with_inexistent_uuid(logged_client: TestClient, prefix: str):
+    response = logged_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac008f")
     json = response.json()
 
     assert response.status_code == 404

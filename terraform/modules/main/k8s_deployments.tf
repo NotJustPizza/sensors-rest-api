@@ -27,6 +27,16 @@ resource "kubernetes_deployment" "rest_api" {
           }
 
           env {
+            name = "APP_SECRET"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret.app_secret_key.metadata[0].name
+                key  = "key"
+              }
+            }
+          }
+
+          env {
             name  = "DB_HOST"
             value = "database.default.svc.cluster.local"
           }

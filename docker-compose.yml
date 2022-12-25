@@ -7,6 +7,7 @@ services:
       context: .
       target: prod-env
     environment:
+      APP_KEY: ${APP_KEY:-changeme}
       DB_PASS: ${DB_PASS:-changeme}
     ports:
       - '8000:8000'
