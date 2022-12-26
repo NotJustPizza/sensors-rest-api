@@ -1,9 +1,11 @@
 DEV_IMAGE_NAME = dev-env
+DEV_IMAGE_TARGET = dev-env
 
 docker-build: IMAGE=$(DEV_IMAGE_NAME)
+docker-build: IMAGE_TARGET=$(DEV_IMAGE_TARGET)
 docker-build: IMAGE_VERSION=latest
 docker-build:
-	docker build . -t $(IMAGE):$(IMAGE_VERSION)
+	docker buildx build . --progress=tty -t $(IMAGE):$(IMAGE_VERSION) --target $(IMAGE_TARGET)
 
 _docker-run: IMAGE=$(DEV_IMAGE_NAME)
 _docker-run: IMAGE_VERSION=latest
