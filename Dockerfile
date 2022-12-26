@@ -1,6 +1,4 @@
-FROM python:3.11.0-alpine3.16 as prod-env
-
-RUN apk add --no-cache build-base
+FROM python:3.11.0-alpine3.17 as prod-env
 
 WORKDIR /usr/bin/src
 
@@ -19,8 +17,7 @@ RUN apk add --no-cache git bash curl unzip
 WORKDIR /usr/bin
 
 RUN RELEASE=$(cat src/.terraform-version) && \
-    wget https://releases.hashicorp.com/terraform/${RELEASE}/terraform_${RELEASE}_linux_amd64.zip && \
-    unzip terraform_${RELEASE}_linux_amd64.zip
+    curl -s https://releases.hashicorp.com/terraform/${RELEASE}/terraform_${RELEASE}_linux_amd64.zip | busybox unzip -
 
 RUN RELEASE=$(cat src/.tflint-version) && \
     curl -s https://raw.githubusercontent.com/terraform-linters/tflint/${RELEASE}/install_linux.sh | bash
