@@ -14,7 +14,7 @@ router = APIRouter(tags=["root"])
 
 @router.get("/")
 async def index(token: Token = Depends(validate_token)):
-    user = await token.get_user()
+    user = await User.get(pk=token.sub)
     return f"Welcome {user.email}!"
 
 
@@ -35,10 +35,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     if not hasher.verify(user.password, form_data.password):
         raise AuthException()
 
+    if not user.is_active:
+        raise AuthException("User disabled")
+
     if hasher.check_needs_rehash(user.password):
         user.password = form_data.password
         await user.save()
 
-    token = await Token.create(sub=str(user.uuid))
+    scopes = "admin" if user.is_admin else None
+    token = Token.create(sub=user.uuid, scopes=scopes)
 
     return {"access_token": str(token), "token_type": "bearer"}

@@ -21,6 +21,7 @@ class User(TimestampMixin, AbstractModel):
     )
     password = fields.CharField(97, null=True)
     is_active = fields.BooleanField(null=False, default=True)
+    is_admin = fields.BooleanField(null=False, default=False)
 
 
 @pre_save(User)

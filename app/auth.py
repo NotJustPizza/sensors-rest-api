@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 from jose import jwt
+from uuid import UUID
+from typing import List, Union
 from .settings import get_settings
-from .exceptions import AuthException
+from .exceptions import AuthException, PermissionException
 from .models.user import User
 
 settings = get_settings()
@@ -26,36 +28,47 @@ class Token:
         return self.encoded_data
 
     @property
-    def exp(self):
+    def exp(self) -> int:
         return self.data["exp"]
 
     @property
-    def sub(self):
-        return self.data["sub"]
+    def sub(self) -> UUID:
+        return UUID(self.data["sub"])
 
-    async def get_user(self) -> User:
-        if not self.__user:
-            self.__user = await User.get(pk=self.sub)
-        return self.__user
+    @property
+    def scopes(self) -> List[str]:
+        if "scopes" in self.data:
+            return self.data["scopes"]
+        else:
+            return []
 
     @classmethod
-    async def create(cls, sub: str):
+    def create(cls, sub: Union[str, UUID], scopes: List[str] = None):
         expire = datetime.utcnow() + timedelta(minutes=30)
-        data = {"sub": sub, "exp": expire}
+        data = {"sub": str(sub), "exp": expire}
+        if scopes:
+            data["scopes"] = scopes
         encoded_data = jwt.encode(data, cls.__secret, algorithm=cls.__algorithm)
         return cls(data, encoded_data)
 
     @classmethod
-    async def load(cls, encoded_data: str = None):
+    def load(cls, encoded_data: str = None):
         encoded_data = encoded_data
         data = jwt.decode(encoded_data, cls.__secret, algorithms=[cls.__algorithm])
         token = cls(data, encoded_data)
-        await token.verify()
+        token.verify()
         return token
 
-    async def verify(self) -> None:
+    def verify(self) -> None:
         if not datetime.utcnow() < datetime.fromtimestamp(self.exp):
             raise AuthException("Expired token")
-        user = await self.get_user()
-        if not user.is_active:
-            raise AuthException("User disabled")
+
+    def check_scope(self, scope: str) -> bool:
+        if scope in self.scopes:
+            return True
+        else:
+            return False
+
+    def require_scope(self, scope: str, disable_exception: bool = False) -> None:
+        if not self.check_scope(scope) and not disable_exception:
+            raise PermissionException

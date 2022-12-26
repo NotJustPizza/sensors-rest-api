@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
 from pytest import mark
+from app.routers import resource_routers
 
 pytestmark = mark.anyio
 
@@ -11,7 +12,14 @@ async def test_index_page(logged_client: TestClient):
     assert response.json() == "Welcome auth@example.com!"
 
 
-prefixes = ["/users"]
+prefixes = ["/users", "/organizations"]
+
+
+async def test_prefixes_match_routers():
+    router_prefixes = []
+    for router in resource_routers:
+        router_prefixes.append(router.prefix)
+    assert router_prefixes == prefixes
 
 
 @mark.parametrize("prefix", prefixes)
@@ -25,9 +33,24 @@ async def test_resource_with_invalid_uuid(logged_client: TestClient, prefix: str
 
 
 @mark.parametrize("prefix", prefixes)
-async def test_resource_with_inexistent_uuid(logged_client: TestClient, prefix: str):
+@mark.parametrize("auth_context", [{"admin": True}], indirect=True)
+async def test_resource_with_inexistent_uuid_as_admin(
+    logged_client: TestClient, prefix: str
+):
     response = logged_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac008f")
     json = response.json()
 
     assert response.status_code == 404
     assert json["detail"] == "Object does not exist"
+
+
+@mark.parametrize("prefix", prefixes)
+@mark.parametrize("auth_context", [{"admin": False}], indirect=True)
+async def test_resource_with_inexistent_uuid_as_user(
+    logged_client: TestClient, prefix: str
+):
+    response = logged_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac008f")
+    json = response.json()
+
+    assert response.status_code == 403
+    assert json["detail"] == "Missing required permission"

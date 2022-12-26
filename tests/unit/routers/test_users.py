@@ -2,19 +2,15 @@ from fastapi.testclient import TestClient
 from pytest import mark, fixture
 from typing import List
 from app.models.user import User
-from ..asserts import (
-    assert_json_pagination,
-    assert_uuid_in_object_json,
-    assert_timestamp_in_object_json,
-)
+from ..asserts import assert_pagination, assert_object_uuid, assert_object_timestamps
 from ..utils import AuthContext, populate_objects
 
 pytestmark = mark.anyio
 
 
-def assert_user_json(user_json: dict, user: User):
-    assert_uuid_in_object_json(user_json, user)
-    assert_timestamp_in_object_json(user_json, user)
+def assert_user_object(user_json: dict, user: User):
+    assert_object_uuid(user_json, user)
+    assert_object_timestamps(user_json, user)
     assert "password" not in user_json
 
 
@@ -34,15 +30,20 @@ async def populate_users(auth_context: AuthContext):
     return users
 
 
-async def test_retrieve_users(logged_client: TestClient, users: List[User]):
+@mark.parametrize(
+    "auth_context, total",
+    [[{"admin": True}, 4], [{"admin": False}, 1]],
+    indirect=["auth_context"],
+)
+async def test_retrieve_users(logged_client: TestClient, users: List[User], total: int):
     response = logged_client.get("/users")
     assert response.status_code == 200
 
     json = response.json()
-    assert_json_pagination(json, total=len(users))
+    assert_pagination(json, total=total)
 
-    for i in range(len(users)):
-        assert_user_json(json["items"][i], users[i])
+    for i in range(total):
+        assert_user_object(json["items"][i], users[i])
 
 
 async def test_retrieve_user(logged_client: TestClient, auth_context: AuthContext):
@@ -50,18 +51,28 @@ async def test_retrieve_user(logged_client: TestClient, auth_context: AuthContex
     assert response.status_code == 200
 
     user_json = response.json()
-    assert_user_json(user_json, auth_context.user)
+    assert_user_object(user_json, auth_context.user)
 
 
-async def test_create_user(logged_client: TestClient):
+@mark.parametrize("auth_context", [{"admin": True}], indirect=True)
+async def test_create_user_as_admin(logged_client: TestClient):
     user_data = {"email": "seba@example.com", "password": "abcd1234"}
-
     response = logged_client.post("/users", json=user_data)
     assert response.status_code == 201
 
     user_json = response.json()
     user = await User.get(email=user_data["email"])
-    assert_user_json(user_json, user)
+    assert_user_object(user_json, user)
 
     # Check if password was replaced by hash in database
     assert user.password.startswith("$argon2id$v=19$m=65536,t=3,p=4$")
+
+
+@mark.parametrize("auth_context", [{"admin": False}], indirect=True)
+async def test_create_user_as_user(logged_client: TestClient):
+    user_data = {"email": "seba@example.com", "password": "abcd1234"}
+    response = logged_client.post("/users", json=user_data)
+    assert response.status_code == 403
+
+    json = response.json()
+    assert json["detail"] == "Missing required permission"

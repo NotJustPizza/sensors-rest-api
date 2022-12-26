@@ -32,7 +32,7 @@ def is_date(data: Any) -> bool:
 
 async def populate_objects(
     data: List[Dict[str, str]], model: Type[AbstractModel]
-) -> List[AbstractModel]:
+) -> List:
     objs = []
     for args in data:
         obj = await model.create(**args)

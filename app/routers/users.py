@@ -11,17 +11,23 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get("/", response_model=Page[UserOutPydantic])
 async def retrieve_users(token: Token = Depends(validate_token)):
-    return await paginate(User.all())
+    if token.check_scope("admin"):
+        query = User.all()
+    else:
+        query = User.filter(pk=token.sub)
+    return await paginate(query)
 
 
 @router.post("/", response_model=UserOutPydantic, status_code=201)
 async def create_user(data: UserInPydantic, token: Token = Depends(validate_token)):
+    token.require_scope("admin")
     user = await User.create(**data.dict(exclude_unset=True))
     return await UserOutPydantic.from_tortoise_orm(user)
 
 
 @router.get("/{uuid}", response_model=UserOutPydantic)
 async def retrieve_user(uuid: UUID, token: Token = Depends(validate_token)):
+    token.require_scope("admin", uuid == token.sub)
     user = await User.get(pk=uuid)
     return await UserOutPydantic.from_tortoise_orm(user)
 
@@ -30,5 +36,6 @@ async def retrieve_user(uuid: UUID, token: Token = Depends(validate_token)):
 async def update_user(
     uuid: UUID, data: UserInPydantic, token: Token = Depends(validate_token)
 ):
+    token.require_scope("admin", uuid == token.sub)
     user = User.filter(pk=uuid).update(**data.dict(exclude_unset=True))
     return await UserOutPydantic.from_tortoise_orm(user)

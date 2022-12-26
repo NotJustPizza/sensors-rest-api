@@ -2,7 +2,7 @@ from asyncio import AbstractEventLoop, BaseEventLoop, get_event_loop_policy
 from fastapi.testclient import TestClient
 from tortoise.contrib.test import initializer, finalizer
 from typing import Iterator
-from pytest import fixture
+from pytest import fixture, mark
 from secrets import token_hex
 import app.settings
 
@@ -39,11 +39,16 @@ def client(request, event_loop: BaseEventLoop) -> Iterator[TestClient]:
     request.addfinalizer(finalizer)
 
 
-@fixture(scope="function")
-async def auth_context(client: TestClient) -> AuthContext:
+@fixture(scope="function", params=[{"admin": True}, {"admin": False}])
+async def auth_context(request, client: TestClient) -> AuthContext:
     password = "abcd1234"
 
-    user = User(name="user", email="auth@example.com", password=password)
+    user = User(
+        name="user",
+        email="auth@example.com",
+        password=password,
+        is_admin=request.param["admin"],
+    )
     await user.save()
 
     return AuthContext(user=user, password=password)
