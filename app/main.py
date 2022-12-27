@@ -3,6 +3,7 @@ from fastapi_pagination import add_pagination
 from tortoise.contrib.fastapi import register_tortoise
 from .routers import routers
 from .settings import get_settings
+from .models.user import User
 
 settings = get_settings()
 
@@ -28,3 +29,11 @@ register_tortoise(
     generate_schemas=True,
     add_exception_handlers=True,
 )
+
+
+# Tortoise ORM has to be registered first
+@app.on_event("startup")
+async def create_admin_user():
+    await User.update_or_create(
+        email="admin@example.com", password=settings.admin_pass, is_admin=True
+    )

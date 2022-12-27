@@ -1,15 +1,16 @@
 from fastapi.testclient import TestClient
 from pytest import mark
 from app.routers import resource_routers
+from ..utils import AuthContext
 
 pytestmark = mark.anyio
 
 
-async def test_index_page(logged_client: TestClient):
+async def test_index_page(logged_client: TestClient, auth_context: AuthContext):
     response = logged_client.get("/")
 
     assert response.status_code == 200
-    assert response.json() == "Welcome auth@example.com!"
+    assert response.json() == f"Welcome {auth_context.user.email}!"
 
 
 prefixes = ["/users", "/organizations"]

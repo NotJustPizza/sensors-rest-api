@@ -2,14 +2,15 @@ from asyncio import AbstractEventLoop, BaseEventLoop, get_event_loop_policy
 from fastapi.testclient import TestClient
 from tortoise.contrib.test import initializer, finalizer
 from typing import Iterator
-from pytest import fixture, mark
+from pytest import fixture
 from secrets import token_hex
 import app.settings
 
 # Workaround for db_url not working in tortoise initializer for pytest
 # Ref: https://github.com/tortoise/tortoise-orm/issues/704
+auth_pass = token_hex(32)
 app.settings.get_settings = lambda: app.settings.Settings(
-    custom_db_url="sqlite://:memory:", app_key=token_hex(32)
+    custom_db_url="sqlite://:memory:", app_key=token_hex(32), admin_pass=auth_pass
 )
 
 from app.main import db_models, app as test_app
@@ -41,17 +42,14 @@ def client(request, event_loop: BaseEventLoop) -> Iterator[TestClient]:
 
 @fixture(scope="function", params=[{"admin": True}, {"admin": False}])
 async def auth_context(request, client: TestClient) -> AuthContext:
-    password = "abcd1234"
-
-    user = User(
-        name="user",
-        email="auth@example.com",
-        password=password,
-        is_admin=request.param["admin"],
-    )
-    await user.save()
-
-    return AuthContext(user=user, password=password)
+    if request.param["admin"]:
+        # Admin user is created at startup by application
+        user = await User.get(email="admin@example.com")
+    else:
+        user = await User.create(
+            email="auth@example.com", password=auth_pass, is_admin=False
+        )
+    return AuthContext(user=user, password=auth_pass)
 
 
 @fixture(scope="function")

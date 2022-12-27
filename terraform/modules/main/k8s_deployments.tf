@@ -37,6 +37,16 @@ resource "kubernetes_deployment" "rest_api" {
           }
 
           env {
+            name = "ADMIN_PASS"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret.admin_password.metadata[0].name
+                key  = "key"
+              }
+            }
+          }
+
+          env {
             name  = "DB_HOST"
             value = "database.default.svc.cluster.local"
           }

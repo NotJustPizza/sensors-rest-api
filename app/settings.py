@@ -4,6 +4,7 @@ from pydantic import BaseSettings
 
 class Settings(BaseSettings):
     app_key: str
+    admin_pass: str
     db_provider: str = "asyncpg"
     db_host: str = "database"
     db_port: int = "5432"
