@@ -35,5 +35,6 @@ register_tortoise(
 @app.on_event("startup")
 async def create_admin_user():
     await User.update_or_create(
-        email="admin@example.com", password=settings.admin_pass, is_admin=True
+        defaults={"password": settings.admin_pass, "is_admin": True},
+        email="admin@example.com",
     )
