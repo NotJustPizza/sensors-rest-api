@@ -1,8 +1,9 @@
 from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from tortoise.exceptions import DoesNotExist
+from tortoise.exceptions import DoesNotExist, ValidationError
 from ..auth import Token
 from ..exceptions import AuthException
 from ..dependencies import validate_token
@@ -27,16 +28,18 @@ class TokenPydantic(BaseModel):
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     try:
         user = await User.get(email=form_data.username)
-    except DoesNotExist:
+    except (DoesNotExist, ValidationError):
         raise AuthException()
+
+    if not user.is_active or not user.password:
+        raise AuthException("User disabled")
 
     hasher = PasswordHasher()
 
-    if not hasher.verify(user.password, form_data.password):
+    try:
+        hasher.verify(user.password, form_data.password)
+    except VerifyMismatchError:
         raise AuthException()
-
-    if not user.is_active:
-        raise AuthException("User disabled")
 
     if hasher.check_needs_rehash(user.password):
         user.password = form_data.password
