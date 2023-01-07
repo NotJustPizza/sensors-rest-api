@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist, ValidationError
 from ..auth import Token
 from ..exceptions import AuthException
-from ..dependencies import validate_token
+from ..dependencies import Auth
 from .users import User
 
 
@@ -14,8 +14,8 @@ router = APIRouter(tags=["root"])
 
 
 @router.get("/")
-async def index(token: Token = Depends(validate_token)):
-    user = await User.get(pk=token.sub)
+async def index(auth: Auth = Depends(Auth())):
+    user = await auth.user_query.only("email")
     return f"Welcome {user.email}!"
 
 
@@ -45,7 +45,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         user.password = form_data.password
         await user.save()
 
-    scopes = "admin" if user.is_admin else None
-    token = Token.create(sub=user.uuid, scopes=scopes)
+    token = Token.create(sub=user.uuid, scopes=form_data.scopes)
 
     return {"access_token": str(token), "token_type": "bearer"}

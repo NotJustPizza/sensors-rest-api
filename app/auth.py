@@ -3,7 +3,7 @@ from jose import jwt
 from uuid import UUID
 from typing import List, Union
 from .settings import get_settings
-from .exceptions import AuthException, PermissionException
+from .exceptions import AuthException
 from .models.user import User
 
 settings = get_settings()
@@ -17,9 +17,7 @@ class Token:
     __secret: str = settings.app_key
 
     def __init__(self, data: dict, encoded_data: str):
-        if "sub" not in data:
-            raise AuthException("Invalid token")
-        if "exp" not in data:
+        if "sub" not in data or "exp" not in data:
             raise AuthException("Invalid token")
         self.data = data
         self.encoded_data = encoded_data
@@ -62,13 +60,3 @@ class Token:
     def verify(self) -> None:
         if not datetime.utcnow() < datetime.fromtimestamp(self.exp):
             raise AuthException("Expired token")
-
-    def check_scope(self, scope: str) -> bool:
-        if scope in self.scopes:
-            return True
-        else:
-            return False
-
-    def require_scope(self, scope: str, disable_exception: bool = False) -> None:
-        if not self.check_scope(scope) and not disable_exception:
-            raise PermissionException

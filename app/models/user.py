@@ -6,6 +6,7 @@ from tortoise.signals import pre_save
 from tortoise.validators import RegexValidator
 from typing import Type, List, Optional
 from .base import TimestampMixin, AbstractModel
+from .organization import Organization
 
 
 class User(TimestampMixin, AbstractModel):
@@ -20,6 +21,7 @@ class User(TimestampMixin, AbstractModel):
         ],
     )
     password = fields.CharField(97, null=True)
+    organizations: fields.ReverseRelation[Organization]
     is_active = fields.BooleanField(null=False, default=True)
     is_admin = fields.BooleanField(null=False, default=False)
 

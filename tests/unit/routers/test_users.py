@@ -31,6 +31,9 @@ async def populate_users(auth_context: AuthContext):
 
 
 @mark.parametrize(
+    "logged_client", [{"scope": "global"}, {"scope": "users:read"}], indirect=True
+)
+@mark.parametrize(
     "auth_context, total",
     [[{"admin": True}, 4], [{"admin": False}, 1]],
     indirect=["auth_context"],
@@ -46,6 +49,9 @@ async def test_retrieve_users(logged_client: TestClient, users: List[User], tota
         assert_user_object(json["items"][i], users[i])
 
 
+@mark.parametrize(
+    "logged_client", [{"scope": "global"}, {"scope": "users:read"}], indirect=True
+)
 async def test_retrieve_user(logged_client: TestClient, auth_context: AuthContext):
     response = logged_client.get(f"/users/{auth_context.user.uuid}")
     assert response.status_code == 200
@@ -54,8 +60,11 @@ async def test_retrieve_user(logged_client: TestClient, auth_context: AuthContex
     assert_user_object(user_json, auth_context.user)
 
 
+@mark.parametrize(
+    "logged_client", [{"scope": "global"}, {"scope": "users:write"}], indirect=True
+)
 @mark.parametrize("auth_context", [{"admin": True}], indirect=True)
-async def test_create_user_as_admin(logged_client: TestClient):
+async def test_create_user(logged_client: TestClient):
     user_data = {"email": "seba@example.com", "password": "abcd1234"}
     response = logged_client.post("/users", json=user_data)
     assert response.status_code == 201
@@ -68,11 +77,17 @@ async def test_create_user_as_admin(logged_client: TestClient):
     assert user.password.startswith("$argon2id$v=19$m=65536,t=3,p=4$")
 
 
-@mark.parametrize("auth_context", [{"admin": False}], indirect=True)
-async def test_create_user_as_user(logged_client: TestClient):
-    user_data = {"email": "seba@example.com", "password": "abcd1234"}
-    response = logged_client.post("/users", json=user_data)
-    assert response.status_code == 403
+@mark.parametrize(
+    "logged_client", [{"scope": "global"}, {"scope": "users:write"}], indirect=True
+)
+async def test_update_user(logged_client: TestClient, auth_context: AuthContext):
+    user = auth_context.user
+    user_data = {"email": "miko@example.com"}
 
-    json = response.json()
-    assert json["detail"] == "Missing required permission"
+    response = logged_client.post(f"/users/{user.uuid}", json=user_data)
+    assert response.status_code == 200
+
+    await user.refresh_from_db()
+    assert user.email == user_data["email"]
+
+    assert_user_object(response.json(), user)

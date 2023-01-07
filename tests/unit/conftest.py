@@ -52,11 +52,17 @@ async def auth_context(request, client: TestClient) -> AuthContext:
     return AuthContext(user=user, password=auth_pass)
 
 
-@fixture(scope="function")
-async def logged_client(auth_context: AuthContext, client: TestClient) -> TestClient:
+@fixture(scope="function", params=[{"scope": "global"}])
+async def logged_client(
+    request, auth_context: AuthContext, client: TestClient
+) -> TestClient:
     response = client.post(
         "/login",
-        data={"username": auth_context.user.email, "password": auth_context.password},
+        data={
+            "username": auth_context.user.email,
+            "password": auth_context.password,
+            "scope": request.param["scope"],
+        },
     )
     json = response.json()
 
