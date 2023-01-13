@@ -6,7 +6,7 @@ from tortoise.signals import pre_save
 from tortoise.validators import RegexValidator
 from typing import Type, List, Optional
 from .base import TimestampMixin, AbstractModel
-from .organization import Organization
+from .organization import Organization, OrganizationMembership
 
 
 class User(TimestampMixin, AbstractModel):
@@ -22,8 +22,12 @@ class User(TimestampMixin, AbstractModel):
     )
     password = fields.CharField(97, null=True)
     organizations: fields.ReverseRelation[Organization]
+    membership: fields.ReverseRelation[OrganizationMembership]
     is_active = fields.BooleanField(null=False, default=True)
     is_admin = fields.BooleanField(null=False, default=False)
+
+    class PydanticMeta:
+        exclude = ("membership", "organizations")
 
 
 @pre_save(User)
@@ -39,6 +43,8 @@ async def user_pre_save(
 
 
 UserInPydantic = pydantic_model_creator(
-    User, name="UserIn", exclude=("uuid", "created_at", "modified_at")
+    User,
+    name="UserIn",
+    exclude=("uuid", "created_at", "modified_at"),
 )
 UserOutPydantic = pydantic_model_creator(User, name="UserOut", exclude=("password",))

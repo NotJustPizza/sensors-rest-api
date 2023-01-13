@@ -6,7 +6,8 @@ from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist, ValidationError
 from ..auth import Token
 from ..exceptions import AuthException
-from ..dependencies import Auth
+from ..dependencies import Auth, get_settings
+from ..settings import Settings
 from .users import User
 
 
@@ -25,7 +26,10 @@ class TokenPydantic(BaseModel):
 
 
 @router.post("/login", response_model=TokenPydantic)
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    settings: Settings = Depends(get_settings),
+):
     try:
         user = await User.get(email=form_data.username)
     except (DoesNotExist, ValidationError):
@@ -45,6 +49,6 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         user.password = form_data.password
         await user.save()
 
-    token = Token.create(sub=user.uuid, scopes=form_data.scopes)
+    token = Token.create(settings.app_key, user.uuid, scopes=form_data.scopes)
 
     return {"access_token": str(token), "token_type": "bearer"}

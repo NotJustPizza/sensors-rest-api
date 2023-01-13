@@ -1,12 +1,9 @@
 from datetime import datetime, timedelta
 from jose import jwt
 from uuid import UUID
-from typing import List, Union
-from .settings import get_settings
+from typing import List
 from .exceptions import AuthException
 from .models.user import User
-
-settings = get_settings()
 
 
 class Token:
@@ -14,7 +11,6 @@ class Token:
     encoded_data: str = None
     __algorithm: str = "HS256"
     __user: User = None
-    __secret: str = settings.app_key
 
     def __init__(self, data: dict, encoded_data: str):
         if "sub" not in data or "exp" not in data:
@@ -41,18 +37,18 @@ class Token:
             return []
 
     @classmethod
-    def create(cls, sub: Union[str, UUID], scopes: List[str] = None):
+    def create(cls, secret: str, sub: str | UUID, scopes: List[str] = None):
         expire = datetime.utcnow() + timedelta(minutes=30)
         data = {"sub": str(sub), "exp": expire}
         if scopes:
             data["scopes"] = scopes
-        encoded_data = jwt.encode(data, cls.__secret, algorithm=cls.__algorithm)
+        encoded_data = jwt.encode(data, secret, algorithm=cls.__algorithm)
         return cls(data, encoded_data)
 
     @classmethod
-    def load(cls, encoded_data: str = None):
+    def load(cls, secret: str, encoded_data: str):
         encoded_data = encoded_data
-        data = jwt.decode(encoded_data, cls.__secret, algorithms=[cls.__algorithm])
+        data = jwt.decode(encoded_data, secret, algorithms=[cls.__algorithm])
         token = cls(data, encoded_data)
         token.verify()
         return token

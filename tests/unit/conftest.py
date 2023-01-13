@@ -4,18 +4,15 @@ from tortoise.contrib.test import initializer, finalizer
 from typing import Iterator
 from pytest import fixture
 from secrets import token_hex
-import app.settings
-
-# Workaround for db_url not working in tortoise initializer for pytest
-# Ref: https://github.com/tortoise/tortoise-orm/issues/704
-auth_pass = token_hex(32)
-app.settings.get_settings = lambda: app.settings.Settings(
-    custom_db_url="sqlite://:memory:", app_key=token_hex(32), admin_pass=auth_pass
-)
-
-from app.main import db_models, app as test_app
+from app.main import create_app, db_models
+from app.settings import Settings
 from app.models.user import User
 from .utils import AuthContext
+
+auth_pass: str = token_hex(32)
+settings = Settings(
+    custom_db_url="sqlite://:memory:", app_key=token_hex(32), admin_pass=auth_pass
+)
 
 
 @fixture(scope="function")
@@ -33,9 +30,10 @@ def event_loop() -> Iterator[AbstractEventLoop]:
 
 @fixture(scope="function")
 def client(request, event_loop: BaseEventLoop) -> Iterator[TestClient]:
+    app = create_app(settings)
     db_models.append("tests.unit.models.fixtures")
     initializer(db_models, loop=event_loop)
-    with TestClient(test_app) as c:
+    with TestClient(app) as c:
         yield c
     request.addfinalizer(finalizer)
 

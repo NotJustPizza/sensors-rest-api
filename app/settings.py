@@ -1,4 +1,3 @@
-from functools import lru_cache
 from pydantic import BaseSettings
 
 
@@ -19,8 +18,3 @@ class Settings(BaseSettings):
             return self.custom_db_url
         else:
             return f"{self.db_provider}://{self.db_user}:{self.db_pass}@{self.db_host}:{self.db_port}/{self.db_name}"
-
-
-@lru_cache()
-def get_settings():
-    return Settings()
