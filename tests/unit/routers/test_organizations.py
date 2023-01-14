@@ -1,15 +1,16 @@
 from fastapi.testclient import TestClient
 from pytest import mark, fixture
 from typing import List
-from app.models.organization import Organization, OrganizationMembership
-from ..asserts import assert_pagination, assert_object
+from app.models.organization import Organization, OrganizationMemberships
+from ..asserts import assert_pagination, assert_object, assert_memberships
 from ..utils import AuthContext, populate_objects
 
 pytestmark = mark.anyio
 
 
-def assert_organization_object(organization_json: dict, org: Organization):
-    assert_object(organization_json, org)
+def assert_organization_object(organization_json: dict, organization: Organization):
+    assert_object(organization_json, organization)
+    assert_memberships(organization_json, organization)
 
 
 @fixture(scope="function", name="organizations")
@@ -18,7 +19,7 @@ async def populate_organizations(auth_context: AuthContext):
         [{"name": "space"}, {"name": "miners"}, {"name": "pilots"}],
         Organization,
     )
-    await OrganizationMembership.create(
+    await OrganizationMemberships.create(
         user_id=auth_context.user.uuid,
         organization_id=organizations[0].uuid,
         is_admin=True,

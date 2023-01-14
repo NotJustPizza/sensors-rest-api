@@ -37,7 +37,7 @@ def create_app(settings: Settings) -> FastAPI:
     async def create_admin_user():
         await User.update_or_create(
             defaults={"password": settings.admin_pass, "is_admin": True},
-            email="admin@example.com",
+            email="admin@sensors-api.com",
         )
 
     return app

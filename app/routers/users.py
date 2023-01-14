@@ -5,7 +5,8 @@ from fastapi_pagination.ext.tortoise import paginate
 from uuid import UUID
 from ..dependencies import Auth
 from ..exceptions import PermissionException
-from ..models.user import User, UserInPydantic, UserOutPydantic
+from ..pydantic import UserInPydantic, UserOutPydantic
+from ..models.user import User
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -14,9 +15,10 @@ router = APIRouter(prefix="/users", tags=["users"])
 async def retrieve_users(auth: Auth = Depends(Auth(scope="users:read"))):
     user = await auth.user_query
     if user.is_admin:
-        return await paginate(User.all())
+        return await paginate(User.all(), prefetch_related=True)
     else:
         # Workaround for paginate() not supporting passing model instance
+        await user.fetch_related("memberships")
         return create_page([user], total=1, params=resolve_params())
 
 
@@ -26,7 +28,7 @@ async def retrieve_user(uuid: UUID, auth: Auth = Depends(Auth(scope="users:read"
     if auth_user.uuid == uuid:
         user = auth_user
     elif auth_user.is_admin:
-        user = await User.get(pk=uuid).prefetch_related()
+        user = await User.get(pk=uuid)
     else:
         raise PermissionException
 
@@ -59,6 +61,5 @@ async def update_user(
 
     for key, value in data.dict(exclude_unset=True).items():
         setattr(user, key, value)
-
     await user.save()
     return await UserOutPydantic.from_tortoise_orm(user)

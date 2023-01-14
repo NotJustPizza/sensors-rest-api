@@ -6,12 +6,8 @@ from tortoise.expressions import Q
 from tortoise.functions import Count
 from ..dependencies import Auth
 from ..exceptions import PermissionException
-from ..models.organization import (
-    Organization,
-    OrganizationMembership,
-    OrganizationInPydantic,
-    OrganizationOutPydantic,
-)
+from ..models.organization import Organization, OrganizationMemberships
+from ..pydantic import OrganizationInPydantic, OrganizationOutPydantic
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
@@ -25,7 +21,7 @@ async def retrieve_organizations(
         query = Organization.all()
     else:
         query = Organization.filter(users__pk=auth.token.sub)
-    return await paginate(query)
+    return await paginate(query, prefetch_related=True)
 
 
 @router.get("/{uuid}", response_model=OrganizationOutPydantic)
@@ -34,7 +30,7 @@ async def retrieve_organization(
 ):
     user = await auth.user_query.only("is_admin").annotate(
         has_organization=Count(
-            "membership", _filter=Q(membership__organization_id=uuid)
+            "memberships", _filter=Q(memberships__organization_id=uuid)
         )
     )
     # noinspection PyUnresolvedReferences
@@ -51,7 +47,7 @@ async def create_organization(
     auth: Auth = Depends(Auth(scope="organizations:write")),
 ):
     organization = await Organization.create(**data.dict(exclude_unset=True))
-    await OrganizationMembership.create(
+    await OrganizationMemberships.create(
         user_id=auth.user_uuid, organization_id=organization.uuid, is_admin=True
     )
     return await OrganizationOutPydantic.from_tortoise_orm(organization)
@@ -66,7 +62,7 @@ async def update_organization(
     user = await auth.user_query.only("is_admin").annotate(
         is_organization_admin=Count(
             "organizations",
-            _filter=Q(membership__organization_id=uuid, membership__is_admin=True),
+            _filter=Q(memberships__organization_id=uuid, memberships__is_admin=True),
         )
     )
     # noinspection PyUnresolvedReferences

@@ -1,3 +1,4 @@
+import email_validator
 from asyncio import AbstractEventLoop, BaseEventLoop, get_event_loop_policy
 from fastapi.testclient import TestClient
 from tortoise.contrib.test import initializer, finalizer
@@ -8,6 +9,9 @@ from app.main import create_app, db_models
 from app.settings import Settings
 from app.models.user import User
 from .utils import AuthContext
+
+
+email_validator.TEST_ENVIRONMENT = True
 
 auth_pass: str = token_hex(32)
 settings = Settings(
@@ -42,10 +46,10 @@ def client(request, event_loop: BaseEventLoop) -> Iterator[TestClient]:
 async def auth_context(request, client: TestClient) -> AuthContext:
     if request.param["admin"]:
         # Admin user is created at startup by application
-        user = await User.get(email="admin@example.com")
+        user = await User.get(email="admin@sensors-api.com")
     else:
         user = await User.create(
-            email="auth@example.com", password=auth_pass, is_admin=False
+            email="auth@sensors-api.com", password=auth_pass, is_admin=False
         )
     return AuthContext(user=user, password=auth_pass)
 

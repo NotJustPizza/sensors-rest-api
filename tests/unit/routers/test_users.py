@@ -2,7 +2,12 @@ from fastapi.testclient import TestClient
 from pytest import mark, fixture
 from typing import List
 from app.models.user import User
-from ..asserts import assert_pagination, assert_object_uuid, assert_object_timestamps
+from ..asserts import (
+    assert_pagination,
+    assert_object_uuid,
+    assert_object_timestamps,
+    assert_memberships,
+)
 from ..utils import AuthContext, populate_objects
 
 pytestmark = mark.anyio
@@ -11,6 +16,7 @@ pytestmark = mark.anyio
 def assert_user_object(user_json: dict, user: User):
     assert_object_uuid(user_json, user)
     assert_object_timestamps(user_json, user)
+    assert_memberships(user_json, user)
     assert "password" not in user_json
 
 
@@ -20,9 +26,9 @@ async def populate_users(auth_context: AuthContext):
     users = [auth_context.user]
     users += await populate_objects(
         [
-            {"email": "john@example.com"},
-            {"email": "chad@example.com"},
-            {"email": "sarah@example.com"},
+            {"email": "john@sensors-api.com"},
+            {"email": "chad@sensors-api.com"},
+            {"email": "sarah@sensors-api.com"},
         ],
         User,
     )
@@ -65,7 +71,7 @@ async def test_retrieve_user(logged_client: TestClient, auth_context: AuthContex
 )
 @mark.parametrize("auth_context", [{"admin": True}], indirect=True)
 async def test_create_user(logged_client: TestClient):
-    user_data = {"email": "seba@example.com", "password": "abcd1234"}
+    user_data = {"email": "seba@sensors-api.com", "password": "abcd1234"}
     response = logged_client.post("/users", json=user_data)
     assert response.status_code == 201
 
@@ -82,7 +88,7 @@ async def test_create_user(logged_client: TestClient):
 )
 async def test_update_user(logged_client: TestClient, auth_context: AuthContext):
     user = auth_context.user
-    user_data = {"email": "miko@example.com"}
+    user_data = {"email": "miko@sensors-api.com"}
 
     response = logged_client.post(f"/users/{user.uuid}", json=user_data)
     assert response.status_code == 200

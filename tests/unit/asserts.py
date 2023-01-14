@@ -29,3 +29,8 @@ def assert_object(obj_json: dict, obj):
     assert_object_uuid(obj_json, obj)
     assert_object_name(obj_json, obj)
     assert_object_timestamps(obj_json, obj)
+
+
+def assert_memberships(obj_json: dict, obj):
+    assert "memberships" in obj_json
+    # TODO: Write more asserts
