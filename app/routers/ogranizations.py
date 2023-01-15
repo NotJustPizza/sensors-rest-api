@@ -96,4 +96,5 @@ async def delete_organization(
     if not user.is_admin and not user.is_organization_admin:
         raise PermissionException("Missing organization admin permissions.")
 
-    await Organization.filter(pk=uuid).delete()
+    organization = await Organization.get(pk=uuid).only("uuid")
+    await organization.delete()

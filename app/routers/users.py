@@ -72,10 +72,12 @@ async def delete_user(
     uuid: UUID,
     auth: Auth = Depends(Auth(scope="users:write")),
 ):
-    auth_user = await auth.user_query
+    auth_user = await auth.user_query.only("uuid", "is_admin")
     if auth_user.uuid == uuid:
-        await auth_user.delete()
+        user = auth_user
     elif auth_user.is_admin:
-        await User.filter(pk=uuid).delete()
+        user = User.get(pk=uuid).only("uuid")
     else:
         raise PermissionException("Missing admin permissions.")
+
+    await user.delete()

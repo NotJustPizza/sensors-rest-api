@@ -130,4 +130,5 @@ async def delete_project(
     if not user.is_admin and not user.is_organization_admin:
         raise PermissionException("Missing permissions to project's organization.")
 
-    await Project.filter(pk=uuid).delete()
+    project = await Project.get(pk=uuid)
+    await project.delete()
