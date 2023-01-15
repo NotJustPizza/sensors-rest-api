@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
-from pytest import mark
+from pytest import mark, raises
+from tortoise.exceptions import DoesNotExist
 from typing import List
 from app.models.organization import Organization
 from app.models.project import Project
@@ -90,3 +91,16 @@ async def test_update_project(
     assert str(project.organization_id) == project_data["organization_id"]
 
     assert_project_object(response.json(), project)
+
+
+@mark.parametrize(
+    "logged_client", [{"scope": "global"}, {"scope": "projects:write"}], indirect=True
+)
+async def test_delete_project(logged_client: TestClient, projects: List[Project]):
+    project = projects[0]
+
+    response = logged_client.delete(f"/projects/{project.uuid}")
+    assert response.status_code == 204
+
+    with raises(DoesNotExist):
+        await project.refresh_from_db()

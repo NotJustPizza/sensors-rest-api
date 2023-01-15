@@ -110,3 +110,24 @@ async def update_project(
 
     await project.save()
     return await ProjectOutPydantic.from_tortoise_orm(project)
+
+
+@router.delete("/{uuid}", status_code=204)
+async def delete_project(
+    uuid: UUID,
+    auth: Auth = Depends(Auth(scope="projects:write")),
+):
+    user = await auth.user_query.only("is_admin").annotate(
+        is_organization_admin=Count(
+            "memberships__organization__projects",
+            _filter=Q(
+                memberships__organization__projects__pk=uuid,
+                memberships__is_admin=True,
+            ),
+        )
+    )
+    # noinspection PyUnresolvedReferences
+    if not user.is_admin and not user.is_organization_admin:
+        raise PermissionException("Missing permissions to project's organization.")
+
+    await Project.filter(pk=uuid).delete()
