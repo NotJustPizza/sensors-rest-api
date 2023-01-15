@@ -1,7 +1,8 @@
 from fastapi.testclient import TestClient
-from pytest import mark
+from pytest import mark, raises
+from tortoise.exceptions import DoesNotExist
 from typing import List
-from app.models.organization import Organization, OrganizationMemberships
+from app.models.organization import Organization
 from ..asserts import assert_pagination, assert_object, assert_memberships
 
 pytestmark = mark.anyio
@@ -92,3 +93,20 @@ async def test_update_organization(
     assert organization.name == organization_data["name"]
 
     await assert_organization_object(response.json(), organization)
+
+
+@mark.parametrize(
+    "logged_client",
+    [{"scope": "global"}, {"scope": "organizations:write"}],
+    indirect=True,
+)
+async def test_delete_organization(
+    logged_client: TestClient, organizations: List[Organization]
+):
+    organization = organizations[0]
+
+    response = logged_client.delete(f"/organizations/{organization.uuid}")
+    assert response.status_code == 204
+
+    with raises(DoesNotExist):
+        await organization.refresh_from_db()
