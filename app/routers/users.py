@@ -65,3 +65,17 @@ async def update_user(
         setattr(user, key, value)
     await user.save()
     return await UserOutPydantic.from_tortoise_orm(user)
+
+
+@router.delete("/{uuid}", status_code=204)
+async def delete_user(
+    uuid: UUID,
+    auth: Auth = Depends(Auth(scope="users:write")),
+):
+    auth_user = await auth.user_query
+    if auth_user.uuid == uuid:
+        await auth_user.delete()
+    elif auth_user.is_admin:
+        await User.filter(pk=uuid).delete()
+    else:
+        raise PermissionException("Missing admin permissions.")

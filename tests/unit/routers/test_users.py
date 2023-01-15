@@ -1,5 +1,6 @@
 from fastapi.testclient import TestClient
-from pytest import mark
+from pytest import mark, raises
+from tortoise.exceptions import DoesNotExist
 from typing import List
 from app.models.user import User
 from ..asserts import (
@@ -83,3 +84,16 @@ async def test_update_user(logged_client: TestClient, auth_context: AuthContext)
     assert user.email == user_data["email"]
 
     await assert_user_object(response.json(), user)
+
+
+@mark.parametrize(
+    "logged_client", [{"scope": "global"}, {"scope": "users:write"}], indirect=True
+)
+async def test_delete_user(logged_client: TestClient, auth_context: AuthContext):
+    user = auth_context.user
+
+    response = logged_client.delete(f"/users/{user.uuid}")
+    assert response.status_code == 204
+
+    with raises(DoesNotExist):
+        await user.refresh_from_db()

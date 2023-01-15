@@ -54,4 +54,5 @@ async def test_resource_with_inexistent_uuid_as_user(
     json = response.json()
 
     assert response.status_code == 403
-    assert json["detail"] == "Missing required permission"
+    assert json["detail"].startswith("Missing")
+    assert json["detail"].endswith("permissions.")
