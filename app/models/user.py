@@ -1,8 +1,8 @@
 from argon2 import PasswordHasher
-from email_validator import validate_email
 from tortoise import fields, BaseDBAsyncClient
 from tortoise.signals import pre_save
 from typing import Type, List, Optional
+from ..validators import EmailValidator
 from .base import TimestampMixin, AbstractModel
 from .organization import Organization, OrganizationMemberships
 
@@ -11,7 +11,7 @@ class User(TimestampMixin, AbstractModel):
     email = fields.CharField(
         255,
         unique=True,
-        validators=[validate_email],
+        validators=[EmailValidator()],
     )
     password = fields.CharField(97, null=True)
     is_active = fields.BooleanField(null=False, default=True)

@@ -1,4 +1,3 @@
-import email_validator
 from asyncio import AbstractEventLoop, BaseEventLoop, get_event_loop_policy
 from fastapi.testclient import TestClient
 from tortoise.contrib.test import initializer, finalizer
@@ -10,8 +9,6 @@ from app.settings import Settings
 from app.models.user import User
 from .utils import AuthContext
 
-
-email_validator.TEST_ENVIRONMENT = True
 
 auth_pass: str = token_hex(32)
 settings = Settings(
