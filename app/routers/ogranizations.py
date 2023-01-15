@@ -7,7 +7,11 @@ from tortoise.functions import Count
 from ..dependencies import Auth
 from ..exceptions import PermissionException
 from ..models.organization import Organization, OrganizationMemberships
-from ..pydantic import OrganizationInPydantic, OrganizationOutPydantic
+from ..pydantic import (
+    OrganizationCreatePydantic,
+    OrganizationUpdatePydantic,
+    OrganizationOutPydantic,
+)
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
 
@@ -35,7 +39,7 @@ async def retrieve_organization(
     )
     # noinspection PyUnresolvedReferences
     if not user.is_admin and not user.has_organization:
-        raise PermissionException
+        raise PermissionException("Missing organization permissions.")
 
     organization = await Organization.get(pk=uuid)
     return await OrganizationOutPydantic.from_tortoise_orm(organization)
@@ -43,7 +47,7 @@ async def retrieve_organization(
 
 @router.post("/", response_model=OrganizationOutPydantic, status_code=201)
 async def create_organization(
-    data: OrganizationInPydantic,
+    data: OrganizationCreatePydantic,
     auth: Auth = Depends(Auth(scope="organizations:write")),
 ):
     organization = await Organization.create(**data.dict(exclude_unset=True))
@@ -56,7 +60,7 @@ async def create_organization(
 @router.post("/{uuid}", response_model=OrganizationOutPydantic)
 async def update_organization(
     uuid: UUID,
-    data: OrganizationInPydantic,
+    data: OrganizationUpdatePydantic,
     auth: Auth = Depends(Auth(scope="organizations:write")),
 ):
     user = await auth.user_query.only("is_admin").annotate(
@@ -67,7 +71,7 @@ async def update_organization(
     )
     # noinspection PyUnresolvedReferences
     if not user.is_admin and not user.is_organization_admin:
-        raise PermissionException
+        raise PermissionException("Missing organization admin permissions.")
 
     organization = await Organization.get(pk=uuid)
     for key, value in data.dict(exclude_unset=True).items():

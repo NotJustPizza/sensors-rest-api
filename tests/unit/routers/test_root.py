@@ -13,7 +13,7 @@ async def test_index_page(logged_client: TestClient, auth_context: AuthContext):
     assert response.json() == f"Welcome {auth_context.user.email}!"
 
 
-prefixes = ["/users", "/organizations"]
+prefixes = ["/users", "/organizations", "/projects"]
 
 
 async def test_prefixes_match_routers():

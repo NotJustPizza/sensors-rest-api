@@ -1,5 +1,6 @@
 from tortoise import fields
 from .base import NameMixin, TimestampMixin, AbstractModel
+from .project import Project
 
 
 class OrganizationMemberships(AbstractModel):
@@ -18,6 +19,7 @@ class OrganizationMemberships(AbstractModel):
 
 class Organization(NameMixin, TimestampMixin, AbstractModel):
     is_active = fields.BooleanField(null=False, default=True)
+    projects: fields.ReverseRelation[Project]
     users = fields.ManyToManyField(
         "models.User", related_name="organizations", through="organization_memberships"
     )

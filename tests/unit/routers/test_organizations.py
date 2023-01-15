@@ -1,30 +1,19 @@
 from fastapi.testclient import TestClient
-from pytest import mark, fixture
+from pytest import mark
 from typing import List
 from app.models.organization import Organization, OrganizationMemberships
 from ..asserts import assert_pagination, assert_object, assert_memberships
-from ..utils import AuthContext, populate_objects
 
 pytestmark = mark.anyio
+pytest_plugins = "tests.unit.routers.fixtures"
 
 
-def assert_organization_object(organization_json: dict, organization: Organization):
+async def assert_organization_object(
+    organization_json: dict, organization: Organization
+):
     assert_object(organization_json, organization)
+    await organization.fetch_related("memberships")
     assert_memberships(organization_json, organization)
-
-
-@fixture(scope="function", name="organizations")
-async def populate_organizations(auth_context: AuthContext):
-    organizations = await populate_objects(
-        [{"name": "space"}, {"name": "miners"}, {"name": "pilots"}],
-        Organization,
-    )
-    await OrganizationMemberships.create(
-        user_id=auth_context.user.uuid,
-        organization_id=organizations[0].uuid,
-        is_admin=True,
-    )
-    return organizations
 
 
 @mark.parametrize(
@@ -34,7 +23,7 @@ async def populate_organizations(auth_context: AuthContext):
 )
 @mark.parametrize(
     "auth_context, total",
-    [[{"admin": True}, 3], [{"admin": False}, 1]],
+    [[{"admin": True}, 4], [{"admin": False}, 2]],
     indirect=["auth_context"],
 )
 async def test_retrieve_organizations(
@@ -47,7 +36,7 @@ async def test_retrieve_organizations(
     assert_pagination(json, total=total)
 
     for i in range(total):
-        assert_organization_object(json["items"][i], organizations[i])
+        await assert_organization_object(json["items"][i], organizations[i])
 
 
 @mark.parametrize(
@@ -63,7 +52,7 @@ async def test_retrieve_organization(
     assert response.status_code == 200
 
     organization_json = response.json()
-    assert_organization_object(organization_json, organization)
+    await assert_organization_object(organization_json, organization)
 
 
 @mark.parametrize(
@@ -78,9 +67,9 @@ async def test_create_organization(logged_client: TestClient):
     assert response.status_code == 201
 
     organization_json = response.json()
-    org = await Organization.get(**data)
+    organization = await Organization.get(**data)
 
-    assert_organization_object(organization_json, org)
+    await assert_organization_object(organization_json, organization)
 
 
 @mark.parametrize(
@@ -102,4 +91,4 @@ async def test_update_organization(
     await organization.refresh_from_db()
     assert organization.name == organization_data["name"]
 
-    assert_organization_object(response.json(), organization)
+    await assert_organization_object(response.json(), organization)

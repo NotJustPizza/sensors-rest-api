@@ -14,10 +14,10 @@ class User(TimestampMixin, AbstractModel):
         validators=[validate_email],
     )
     password = fields.CharField(97, null=True)
-    organizations: fields.ReverseRelation[Organization]
-    membership: fields.ReverseRelation[OrganizationMemberships]
     is_active = fields.BooleanField(null=False, default=True)
     is_admin = fields.BooleanField(null=False, default=False)
+    organizations: fields.ReverseRelation[Organization]
+    memberships: fields.ReverseRelation[OrganizationMemberships]
 
     class PydanticMeta:
         exclude = ("organizations",)

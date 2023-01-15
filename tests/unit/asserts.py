@@ -33,4 +33,12 @@ def assert_object(obj_json: dict, obj):
 
 def assert_memberships(obj_json: dict, obj):
     assert "memberships" in obj_json
-    # TODO: Write more asserts
+    memberships = obj.memberships
+    for index, membership in enumerate(memberships):
+        membership_json = obj_json["memberships"][index]
+        assert is_uuid(membership_json["uuid"])
+        assert membership_json["uuid"] == str(membership.uuid)
+        assert is_uuid(membership_json["user_id"])
+        assert membership_json["user_id"] == str(membership.user_id)
+        assert is_uuid(membership_json["organization_id"])
+        assert membership_json["organization_id"] == str(membership.organization_id)
