@@ -1,44 +1,61 @@
-from app.models.base import NameMixin, TimestampMixin, AbstractModel
+from pytest import raises
+from tortoise.exceptions import DoesNotExist
+from app.models.base import AbstractModel
 from .utils import is_uuid, is_date
 
 
-def assert_pagination(json: dict, total: int, page: int = 1, size: int = 50):
-    assert json["total"] == total
-    assert len(json["items"]) == total
-    assert json["page"] == page
-    assert json["size"] == size
+async def assert_object_matches_json(
+    obj: AbstractModel, obj_json: dict, nested: bool = False, refresh: bool = False
+):
+    if refresh is True:
+        await obj.refresh_from_db()
+
+    for key, value in obj_json.items():
+        assert (
+            key != "password"
+        ), "Passwords should never be returned in json responses."
+        assert type(value) is not dict, "Dictionaries are not supported."
+
+        # ManyToMany relationships
+        if type(value) is list:
+            assert (
+                nested is not True
+            ), "Multilevel ManyToMany relations are not supported."
+            # Fetch nested objects from database
+            await obj.fetch_related(key)
+            nested_objects = getattr(obj, key)
+
+            for index, nested_json in enumerate(value):
+                assert (
+                    type(nested_json) is dict
+                ), "ManyToMany relation must consist of list of dictionaries."
+                # Repeat same function for each nested object
+                await assert_object_matches_json(
+                    nested_objects[index], nested_json, nested=True
+                )
+            continue
+
+        # Get value of object attribute with same name as in json
+        obj_value = getattr(obj, key)
+
+        # Ensure that uuids are actually uuids
+        if key == "uuid" or key.endswith("_id"):
+            assert is_uuid(value)
+            # Uuid has to be converted to string fist
+            obj_value = str(obj_value)
+
+        # Ensure that created_at and modified_at are valid dates
+        if key.endswith("_at"):
+            assert is_date(value)
+            # Date has to be in iso format fist
+            obj_value = obj_value.isoformat()
+
+        # Ensure value matches object attribute
+        assert (
+            value == obj_value
+        ), f"{value} from json doesn't match {obj_value} from object for key: {key}"
 
 
-def assert_object_uuid(obj_json: dict, obj: AbstractModel):
-    assert is_uuid(obj_json["uuid"])
-    assert obj_json["uuid"] == str(obj.uuid)
-
-
-def assert_object_name(obj_json: dict, obj: NameMixin):
-    assert obj_json["name"] == obj.name
-
-
-def assert_object_timestamps(obj_json: dict, obj: TimestampMixin):
-    assert is_date(obj_json["created_at"])
-    assert obj_json["created_at"] == obj.created_at.isoformat()
-    assert is_date(obj_json["modified_at"])
-    assert obj_json["modified_at"] == obj.modified_at.isoformat()
-
-
-def assert_object(obj_json: dict, obj):
-    assert_object_uuid(obj_json, obj)
-    assert_object_name(obj_json, obj)
-    assert_object_timestamps(obj_json, obj)
-
-
-def assert_memberships(obj_json: dict, obj):
-    assert "memberships" in obj_json
-    memberships = obj.memberships
-    for index, membership in enumerate(memberships):
-        membership_json = obj_json["memberships"][index]
-        assert is_uuid(membership_json["uuid"])
-        assert membership_json["uuid"] == str(membership.uuid)
-        assert is_uuid(membership_json["user_id"])
-        assert membership_json["user_id"] == str(membership.user_id)
-        assert is_uuid(membership_json["organization_id"])
-        assert membership_json["organization_id"] == str(membership.organization_id)
+async def assert_object_was_deleted(obj: AbstractModel):
+    with raises(DoesNotExist):
+        await obj.refresh_from_db()

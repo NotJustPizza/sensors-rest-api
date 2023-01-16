@@ -1,14 +1,12 @@
-from fastapi.testclient import TestClient
 from pytest import mark
 from app.routers import resource_routers
-from ..utils import AuthContext
+from ..utils import AuthContext, ApiTestClient
 
 pytestmark = mark.anyio
 
 
-async def test_index_page(logged_client: TestClient, auth_context: AuthContext):
-    response = logged_client.get("/")
-
+async def test_index_page(auth_client: ApiTestClient, auth_context: AuthContext):
+    response = auth_client.get("/")
     assert response.status_code == 200
     assert response.json() == f"Welcome {auth_context.user.email}!"
 
@@ -24,10 +22,9 @@ async def test_prefixes_match_routers():
 
 
 @mark.parametrize("prefix", prefixes)
-async def test_resource_with_invalid_uuid(logged_client: TestClient, prefix: str):
-    response = logged_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac0")
+async def test_resource_with_invalid_uuid(auth_client: ApiTestClient, prefix: str):
+    response = auth_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac0")
     json = response.json()
-
     assert response.status_code == 422
     assert json["detail"][0]["type"] == "type_error.uuid"
     assert json["detail"][0]["msg"] == "value is not a valid uuid"
@@ -36,11 +33,10 @@ async def test_resource_with_invalid_uuid(logged_client: TestClient, prefix: str
 @mark.parametrize("prefix", prefixes)
 @mark.parametrize("auth_context", [{"admin": True}], indirect=True)
 async def test_resource_with_inexistent_uuid_as_admin(
-    logged_client: TestClient, prefix: str
+    auth_client: ApiTestClient, prefix: str
 ):
-    response = logged_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac008f")
+    response = auth_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac008f")
     json = response.json()
-
     assert response.status_code == 404
     assert json["detail"] == "Object does not exist"
 
@@ -48,11 +44,10 @@ async def test_resource_with_inexistent_uuid_as_admin(
 @mark.parametrize("prefix", prefixes)
 @mark.parametrize("auth_context", [{"admin": False}], indirect=True)
 async def test_resource_with_inexistent_uuid_as_user(
-    logged_client: TestClient, prefix: str
+    auth_client: ApiTestClient, prefix: str
 ):
-    response = logged_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac008f")
+    response = auth_client.get(f"{prefix}/bd14c26e-a1db-47d6-9aa1-b8ea80ac008f")
     json = response.json()
-
     assert response.status_code == 403
     assert json["detail"].startswith("Missing")
     assert json["detail"].endswith("permissions.")

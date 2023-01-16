@@ -1,112 +1,81 @@
-from fastapi.testclient import TestClient
-from pytest import mark, raises
-from tortoise.exceptions import DoesNotExist
+from pytest import mark
 from typing import List
 from app.models.organization import Organization
-from ..asserts import assert_pagination, assert_object, assert_memberships
+from ..asserts import assert_object_matches_json, assert_object_was_deleted
+from ..utils import ApiTestClient
 
 pytestmark = mark.anyio
 pytest_plugins = "tests.unit.routers.fixtures"
 
 
-async def assert_organization_object(
-    organization_json: dict, organization: Organization
-):
-    assert_object(organization_json, organization)
-    await organization.fetch_related("memberships")
-    assert_memberships(organization_json, organization)
-
-
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "organizations:read"}],
     indirect=True,
 )
 @mark.parametrize(
-    "auth_context, total",
+    "auth_context, expected_total",
     [[{"admin": True}, 4], [{"admin": False}, 2]],
     indirect=["auth_context"],
 )
 async def test_retrieve_organizations(
-    logged_client: TestClient, organizations: List[Organization], total: int
+    auth_client: ApiTestClient,
+    organizations: List[Organization],
+    expected_total: int,
 ):
-    response = logged_client.get("/organizations")
-    assert response.status_code == 200
-
-    json = response.json()
-    assert_pagination(json, total=total)
-
-    for i in range(total):
-        await assert_organization_object(json["items"][i], organizations[i])
+    items = auth_client.api_list("/organizations", expected_total)
+    for i in range(expected_total):
+        await assert_object_matches_json(organizations[i], items[i])
 
 
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "organizations:read"}],
     indirect=True,
 )
 async def test_retrieve_organization(
-    logged_client: TestClient, organizations: List[Organization]
+    auth_client: ApiTestClient, organizations: List[Organization]
 ):
     organization = organizations[0]
-    response = logged_client.get(f"/organizations/{organization.uuid}")
-    assert response.status_code == 200
-
-    organization_json = response.json()
-    await assert_organization_object(organization_json, organization)
+    item = auth_client.api_get("/organizations", organization.uuid)
+    await assert_object_matches_json(organization, item)
 
 
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "organizations:write"}],
     indirect=True,
 )
-async def test_create_organization(logged_client: TestClient):
+async def test_create_organization(auth_client: ApiTestClient):
     data = {"name": "tribes"}
-
-    response = logged_client.post("/organizations", json=data)
-    assert response.status_code == 201
-
-    organization_json = response.json()
+    item = auth_client.api_create("/organizations", data)
     organization = await Organization.get(**data)
-
-    await assert_organization_object(organization_json, organization)
+    await assert_object_matches_json(organization, item)
 
 
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "organizations:write"}],
     indirect=True,
 )
 async def test_update_organization(
-    logged_client: TestClient, organizations: List[Organization]
+    auth_client: ApiTestClient, organizations: List[Organization]
 ):
     organization = organizations[0]
-    organization_data = {"name": "tribes"}
-
-    response = logged_client.post(
-        f"/organizations/{organization.uuid}", json=organization_data
-    )
-    assert response.status_code == 200
-
-    await organization.refresh_from_db()
-    assert organization.name == organization_data["name"]
-
-    await assert_organization_object(response.json(), organization)
+    data = {"name": "tribes"}
+    item = auth_client.api_update("/organizations", organization.uuid, data)
+    await assert_object_matches_json(organization, item, refresh=True)
+    await assert_object_matches_json(organization, data)
 
 
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "organizations:write"}],
     indirect=True,
 )
 async def test_delete_organization(
-    logged_client: TestClient, organizations: List[Organization]
+    auth_client: ApiTestClient, organizations: List[Organization]
 ):
     organization = organizations[0]
-
-    response = logged_client.delete(f"/organizations/{organization.uuid}")
-    assert response.status_code == 204
-
-    with raises(DoesNotExist):
-        await organization.refresh_from_db()
+    auth_client.api_delete("/organizations", organization.uuid)
+    await assert_object_was_deleted(organization)

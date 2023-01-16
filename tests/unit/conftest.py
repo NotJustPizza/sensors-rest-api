@@ -1,5 +1,4 @@
 from asyncio import AbstractEventLoop, BaseEventLoop, get_event_loop_policy
-from fastapi.testclient import TestClient
 from tortoise.contrib.test import initializer, finalizer
 from typing import Iterator
 from pytest import fixture
@@ -7,7 +6,7 @@ from secrets import token_hex
 from app.main import create_app, db_models
 from app.settings import Settings
 from app.models.user import User
-from .utils import AuthContext
+from .utils import AuthContext, ApiTestClient
 
 
 auth_pass: str = token_hex(32)
@@ -30,17 +29,17 @@ def event_loop() -> Iterator[AbstractEventLoop]:
 
 
 @fixture(scope="function")
-def client(request, event_loop: BaseEventLoop) -> Iterator[TestClient]:
+def client(request, event_loop: BaseEventLoop) -> Iterator[ApiTestClient]:
     app = create_app(settings)
     db_models.append("tests.unit.models.fixtures")
     initializer(db_models, loop=event_loop)
-    with TestClient(app) as c:
+    with ApiTestClient(app) as c:
         yield c
     request.addfinalizer(finalizer)
 
 
 @fixture(scope="function", params=[{"admin": True}, {"admin": False}])
-async def auth_context(request, client: TestClient) -> AuthContext:
+async def auth_context(request, client: ApiTestClient) -> AuthContext:
     if request.param["admin"]:
         # Admin user is created at startup by application
         user = await User.get(email="admin@sensors-api.com")
@@ -52,9 +51,9 @@ async def auth_context(request, client: TestClient) -> AuthContext:
 
 
 @fixture(scope="function", params=[{"scope": "global"}])
-async def logged_client(
-    request, auth_context: AuthContext, client: TestClient
-) -> TestClient:
+async def auth_client(
+    request, auth_context: AuthContext, client: ApiTestClient
+) -> ApiTestClient:
     response = client.post(
         "/login",
         data={

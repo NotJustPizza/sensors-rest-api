@@ -1,106 +1,80 @@
-from fastapi.testclient import TestClient
-from pytest import mark, raises
-from tortoise.exceptions import DoesNotExist
+from pytest import mark
 from typing import List
 from app.models.organization import Organization
 from app.models.project import Project
-from ..asserts import assert_pagination, assert_object
+from ..asserts import assert_object_matches_json, assert_object_was_deleted
+from ..utils import ApiTestClient
 
 pytestmark = mark.anyio
 pytest_plugins = "tests.unit.routers.fixtures"
 
 
-def assert_project_object(project_json: dict, org: Project):
-    assert_object(project_json, org)
-
-
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "projects:read"}],
     indirect=True,
 )
 @mark.parametrize(
-    "auth_context, total",
+    "auth_context, expected_total",
     [[{"admin": True}, 8], [{"admin": False}, 4]],
     indirect=["auth_context"],
 )
 async def test_retrieve_projects(
-    logged_client: TestClient, projects: List[Project], total: int
+    auth_client: ApiTestClient, projects: List[Project], expected_total: int
 ):
-    response = logged_client.get("/projects")
-    assert response.status_code == 200
-
-    json = response.json()
-    assert_pagination(json, total=total)
-
-    for i in range(total):
-        assert_project_object(json["items"][i], projects[i])
+    items = auth_client.api_list("/projects", expected_total)
+    for i in range(expected_total):
+        await assert_object_matches_json(projects[i], items[i])
 
 
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "projects:read"}],
     indirect=True,
 )
-async def test_retrieve_project(logged_client: TestClient, projects: List[Project]):
+async def test_retrieve_project(auth_client: ApiTestClient, projects: List[Project]):
     project = projects[0]
-    response = logged_client.get(f"/projects/{project.uuid}")
-    assert response.status_code == 200
-
-    project_json = response.json()
-    assert_project_object(project_json, project)
+    item = auth_client.api_get("/projects", project.uuid)
+    await assert_object_matches_json(project, item)
 
 
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "projects:write"}],
     indirect=True,
 )
 async def test_create_project(
-    logged_client: TestClient, organizations: List[Organization]
+    auth_client: ApiTestClient, organizations: List[Organization]
 ):
     data = {"name": "moon", "organization_id": str(organizations[0].uuid)}
-
-    response = logged_client.post("/projects", json=data)
-    assert response.status_code == 201
-
-    project_json = response.json()
+    item = auth_client.api_create("/projects", data)
     project = await Project.get(**data)
-
-    assert_project_object(project_json, project)
+    await assert_object_matches_json(project, item)
 
 
 @mark.parametrize(
-    "logged_client",
+    "auth_client",
     [{"scope": "global"}, {"scope": "projects:write"}],
     indirect=True,
 )
 async def test_update_project(
-    logged_client: TestClient,
+    auth_client: ApiTestClient,
     projects: List[Project],
     organizations: List[Organization],
 ):
     project = projects[0]
-    project_data = {"name": "moon", "organization_id": str(organizations[1].uuid)}
-
-    response = logged_client.post(f"/projects/{project.uuid}", json=project_data)
-    assert response.status_code == 200
-
-    await project.refresh_from_db()
-    assert project.name == project_data["name"]
-    assert str(project.organization_id) == project_data["organization_id"]
-
-    assert_project_object(response.json(), project)
+    data = {"name": "moon", "organization_id": str(organizations[1].uuid)}
+    item = auth_client.api_update("/projects", project.uuid, data)
+    await assert_object_matches_json(project, item, refresh=True)
+    await assert_object_matches_json(project, data)
 
 
 @mark.parametrize(
-    "logged_client", [{"scope": "global"}, {"scope": "projects:write"}], indirect=True
+    "auth_client",
+    [{"scope": "global"}, {"scope": "projects:write"}],
+    indirect=True,
 )
-async def test_delete_project(logged_client: TestClient, projects: List[Project]):
+async def test_delete_project(auth_client: ApiTestClient, projects: List[Project]):
     project = projects[0]
-
-    response = logged_client.delete(f"/projects/{project.uuid}")
-    assert response.status_code == 204
-
-    with raises(DoesNotExist):
-        await project.refresh_from_db()
+    auth_client.api_delete("/projects", project.uuid)
+    await assert_object_was_deleted(project)
