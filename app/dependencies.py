@@ -18,10 +18,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 class Auth:
-    scope: str
+    scope: str | None
     token: Token
 
-    def __init__(self, scope: str = None):
+    def __init__(self, scope: str | None = None):
         self.scope = scope
 
     def __call__(

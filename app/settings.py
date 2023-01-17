@@ -6,11 +6,11 @@ class Settings(BaseSettings):
     admin_pass: str
     db_provider: str = "asyncpg"
     db_host: str = "database"
-    db_port: int = "5432"
+    db_port: int = 5432
     db_user: str = "postgres"
-    db_pass: str = None
+    db_pass: str | None = None
     db_name: str = "sensors"
-    custom_db_url: str = None
+    custom_db_url: str | None = None
 
     @property
     def db_url(self):

@@ -3,14 +3,12 @@ from jose import jwt
 from uuid import UUID
 from typing import List
 from .exceptions import AuthException
-from .models.user import User
 
 
 class Token:
-    data: dict = None
-    encoded_data: str = None
+    data: dict
+    encoded_data: str
     __algorithm: str = "HS256"
-    __user: User = None
 
     def __init__(self, data: dict, encoded_data: str):
         if "sub" not in data or "exp" not in data:
@@ -37,7 +35,7 @@ class Token:
             return []
 
     @classmethod
-    def create(cls, secret: str, sub: str | UUID, scopes: List[str] = None):
+    def create(cls, secret: str, sub: str | UUID, scopes: List[str] | None = None):
         expire = datetime.utcnow() + timedelta(minutes=30)
         data = {"sub": str(sub), "exp": expire}
         if scopes:
