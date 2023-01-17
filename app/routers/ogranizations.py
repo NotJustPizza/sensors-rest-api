@@ -1,16 +1,18 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends
 from fastapi_pagination import Page
 from fastapi_pagination.ext.tortoise import paginate
-from uuid import UUID
 from tortoise.expressions import Q
 from tortoise.functions import Count
+
 from ..dependencies import Auth
 from ..exceptions import PermissionException
 from ..models.organization import Organization, OrganizationMemberships
 from ..pydantic import (
     OrganizationCreatePydantic,
-    OrganizationUpdatePydantic,
     OrganizationOutPydantic,
+    OrganizationUpdatePydantic,
 )
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])

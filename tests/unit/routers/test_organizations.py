@@ -1,6 +1,9 @@
-from pytest import mark
 from typing import List
+
+from pytest import mark
+
 from app.models.organization import Organization
+
 from ..asserts import assert_object_matches_json, assert_object_was_deleted
 from ..utils import ApiTestClient
 

@@ -4,12 +4,12 @@ from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist, ValidationError
+
 from ..auth import Token
-from ..exceptions import AuthException
 from ..dependencies import Auth, get_settings
+from ..exceptions import AuthException
 from ..settings import Settings
 from .users import User
-
 
 router = APIRouter(tags=["root"])
 

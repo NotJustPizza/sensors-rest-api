@@ -1,13 +1,15 @@
 from asyncio import AbstractEventLoop, BaseEventLoop, get_event_loop_policy
-from tortoise.contrib.test import initializer, finalizer
-from typing import Iterator
-from pytest import fixture
 from secrets import token_hex
-from app.main import create_app, db_models
-from app.settings import Settings
-from app.models.user import User
-from .utils import AuthContext, ApiTestClient
+from typing import Iterator
 
+from pytest import fixture
+from tortoise.contrib.test import finalizer, initializer
+
+from app.main import create_app, db_models
+from app.models.user import User
+from app.settings import Settings
+
+from .utils import ApiTestClient, AuthContext
 
 auth_pass: str = token_hex(32)
 settings = Settings(

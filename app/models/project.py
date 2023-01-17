@@ -1,5 +1,6 @@
 from tortoise import fields
-from .base import NameMixin, TimestampMixin, AbstractModel
+
+from .base import AbstractModel, NameMixin, TimestampMixin
 
 
 class Project(NameMixin, TimestampMixin, AbstractModel):

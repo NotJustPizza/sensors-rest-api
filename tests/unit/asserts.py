@@ -1,7 +1,9 @@
 from pytest import raises
 from tortoise.exceptions import DoesNotExist
+
 from app.models.base import AbstractModel
-from .utils import is_uuid, is_date
+
+from .utils import is_date, is_uuid
 
 
 async def assert_object_matches_json(

@@ -1,9 +1,10 @@
 from tortoise import Tortoise
 from tortoise.contrib.pydantic import pydantic_model_creator
+
 from .models import db_models
-from .models.user import User
 from .models.organization import Organization
 from .models.project import Project
+from .models.user import User
 
 # Ref: https://tortoise.github.io/examples/pydantic.html#early-model-init
 Tortoise.init_models(db_models, "models")

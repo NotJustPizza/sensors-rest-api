@@ -1,7 +1,9 @@
+from typing import Any, Dict, List, Type
+from uuid import UUID
+
 from dateutil.parser import parse as parse_date
 from fastapi.testclient import TestClient
-from uuid import UUID
-from typing import Any, Dict, List, Type
+
 from app.models.base import AbstractModel
 from app.models.user import User
 

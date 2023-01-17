@@ -1,12 +1,14 @@
+from uuid import UUID
+
 from fastapi import APIRouter, Depends
 from fastapi_pagination import Page
 from fastapi_pagination.api import create_page, resolve_params
 from fastapi_pagination.ext.tortoise import paginate
-from uuid import UUID
+
 from ..dependencies import Auth
 from ..exceptions import PermissionException
-from ..pydantic import UserCreatePydantic, UserUpdatePydantic, UserOutPydantic
 from ..models.user import User
+from ..pydantic import UserCreatePydantic, UserOutPydantic, UserUpdatePydantic
 
 router = APIRouter(prefix="/users", tags=["users"])
 

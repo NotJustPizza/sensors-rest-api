@@ -1,8 +1,11 @@
-from pytest import mark
 from typing import List
+
+from pytest import mark
+
 from app.models.user import User
+
 from ..asserts import assert_object_matches_json, assert_object_was_deleted
-from ..utils import AuthContext, ApiTestClient
+from ..utils import ApiTestClient, AuthContext
 
 pytestmark = mark.anyio
 pytest_plugins = "tests.unit.routers.fixtures"

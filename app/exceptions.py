@@ -1,5 +1,6 @@
-from fastapi import HTTPException
 from typing import Any
+
+from fastapi import HTTPException
 from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
 
 

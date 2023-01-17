@@ -1,6 +1,8 @@
 from pytest import mark
+
 from app.routers import resource_routers
-from ..utils import AuthContext, ApiTestClient
+
+from ..utils import ApiTestClient, AuthContext
 
 pytestmark = mark.anyio
 

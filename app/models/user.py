@@ -1,9 +1,11 @@
+from typing import List, Optional, Type
+
 from argon2 import PasswordHasher
-from tortoise import fields, BaseDBAsyncClient
+from tortoise import BaseDBAsyncClient, fields
 from tortoise.signals import pre_save
-from typing import Type, List, Optional
+
 from ..validators import EmailValidator
-from .base import TimestampMixin, AbstractModel
+from .base import AbstractModel, TimestampMixin
 from .organization import Organization, OrganizationMemberships
 
 

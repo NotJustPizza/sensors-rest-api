@@ -1,12 +1,14 @@
-from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
 from functools import lru_cache
 from uuid import UUID
+
+from fastapi import Depends
+from fastapi.security import OAuth2PasswordBearer
 from tortoise.queryset import QuerySetSingle
-from .settings import Settings
+
 from .auth import Token
 from .exceptions import AuthException
 from .models.user import User
+from .settings import Settings
 
 
 @lru_cache()

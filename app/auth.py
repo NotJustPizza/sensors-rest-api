@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
-from jose import jwt
-from uuid import UUID
 from typing import List
+from uuid import UUID
+
+from jose import jwt
+
 from .exceptions import AuthException
 
 

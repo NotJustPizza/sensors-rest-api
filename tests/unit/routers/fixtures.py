@@ -1,8 +1,11 @@
-from pytest import fixture
 from typing import List
-from app.models.user import User
+
+from pytest import fixture
+
 from app.models.organization import Organization, OrganizationMemberships
 from app.models.project import Project
+from app.models.user import User
+
 from ..utils import AuthContext, populate_objects
 
 

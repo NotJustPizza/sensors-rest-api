@@ -1,11 +1,12 @@
 from fastapi import FastAPI
 from fastapi_pagination import add_pagination
 from tortoise.contrib.fastapi import register_tortoise
-from .settings import Settings
+
 from .dependencies import get_settings
-from .routers import routers
 from .models import db_models
 from .models.user import User
+from .routers import routers
+from .settings import Settings
 
 
 def create_app(settings: Settings) -> FastAPI:
