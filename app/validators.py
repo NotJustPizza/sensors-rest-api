@@ -22,4 +22,4 @@ class EmailValidator(Validator):
                 globally_deliverable=self.globally_deliverable,
             )
         except EmailNotValidError:
-            raise ValidationError(f"Value '{value}' is not valid email address.'")
+            raise ValidationError(f"Value {value!r} is not valid email address.")
