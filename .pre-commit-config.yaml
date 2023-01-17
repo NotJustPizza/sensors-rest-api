@@ -12,6 +12,11 @@ repos:
   - id: forbid-submodules
   - id: requirements-txt-fixer
   - id: trailing-whitespace
+- repo: https://github.com/shellcheck-py/shellcheck-py
+  # rev: v0.9.0.2
+  rev: 4bb61ddc1b4175565f8f975fd20d657f00f2bd53
+  hooks:
+  - id: shellcheck
 - repo: https://github.com/pycqa/isort
   # rev: 5.11.4
   rev: 98390f5fde8f904f16a4e290a2aabed80d0951dc
