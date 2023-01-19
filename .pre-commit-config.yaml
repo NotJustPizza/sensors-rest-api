@@ -48,12 +48,18 @@ repos:
   - id: python-safety-dependencies-check
     args:
     - '--disable-telemetry'
-- repo: https://github.com/gruntwork-io/pre-commit
-  # rev: v0.1.17
-  rev: 1722bf6a0804bf5357f4c49da4b80bfc875f1697
+- repo: https://github.com/antonbabenko/pre-commit-terraform
+  # rev: v1.77.0
+  rev: 1d54ea2b9950097568c6a7a2e2bcb6d4b4ebfb61
   hooks:
-  - id: terraform-validate
-  - id: terraform-fmt
-  - id: tflint
+  - id: terraform_fmt
+  - id: terraform_tflint
     args:
-    - '--module'
+    - '--args=--module'
+  - id: terraform_tfsec
+  - id: terraform_validate
+  - id: terraform_checkov
+    args:
+    - '--args=--quiet'
+  - id: terrascan
+    files: ^terraform/
