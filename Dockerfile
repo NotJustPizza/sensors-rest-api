@@ -5,6 +5,7 @@ COPY requirements.txt ./
 RUN pip install -r requirements.txt --no-cache-dir
 
 CMD ["uvicorn", "app.run:app", "--host", "0.0.0.0"]
+HEALTHCHECK CMD curl --fail http://localhost/healthcheck || exit 1
 
 FROM base-env as prod-env
 
