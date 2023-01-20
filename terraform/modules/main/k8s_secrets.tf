@@ -3,7 +3,8 @@ resource "random_password" "database_password" {
 }
 resource "kubernetes_secret" "database_password" {
   metadata {
-    name = "database-password"
+    name      = "database-password"
+    namespace = var.environment
   }
 
   data = {
@@ -16,7 +17,8 @@ resource "random_password" "app_secret_key" {
 }
 resource "kubernetes_secret" "app_secret_key" {
   metadata {
-    name = "app-secret-key"
+    name      = "app-secret-key"
+    namespace = var.environment
   }
 
   data = {
@@ -29,7 +31,8 @@ resource "random_password" "admin_password" {
 }
 resource "kubernetes_secret" "admin_password" {
   metadata {
-    name = "admin-password"
+    name      = "admin-password"
+    namespace = var.environment
   }
 
   data = {

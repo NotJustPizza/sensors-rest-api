@@ -1,7 +1,8 @@
 resource "kubernetes_service" "database" {
   metadata {
-    name   = "database"
-    labels = local.database_labels
+    name      = "database"
+    labels    = local.database_labels
+    namespace = var.environment
   }
   spec {
     selector = local.database_labels
@@ -17,8 +18,9 @@ resource "kubernetes_service" "database" {
 
 resource "kubernetes_service" "rest_api" {
   metadata {
-    name   = "rest-api"
-    labels = local.rest_api_labels
+    name      = "rest-api"
+    labels    = local.rest_api_labels
+    namespace = var.environment
     annotations = {
       "service.beta.kubernetes.io/vultr-loadbalancer-protocol"  = "http"
       "service.beta.kubernetes.io/vultr-loadbalancer-algorithm" = "least_connections"

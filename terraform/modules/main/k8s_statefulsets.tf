@@ -1,7 +1,8 @@
 resource "kubernetes_stateful_set" "database" {
   metadata {
-    name   = "database"
-    labels = local.database_labels
+    name      = "database"
+    labels    = local.database_labels
+    namespace = var.environment
   }
 
   spec {
@@ -18,8 +19,17 @@ resource "kubernetes_stateful_set" "database" {
 
       spec {
         container {
-          image = "postgres:15.0-alpine3.16"
-          name  = "database"
+          image             = "postgres:15.0-alpine3.16"
+          name              = "database"
+          image_pull_policy = "Always"
+
+          security_context {
+            read_only_root_filesystem = true
+            capabilities {
+              # Ref: https://docs.bridgecrew.io/docs/bc_k8s_27
+              drop = ["ALL", "NET_RAW"]
+            }
+          }
 
           resources {
             limits   = var.k8s_database_config.limits
