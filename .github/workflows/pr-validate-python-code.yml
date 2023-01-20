@@ -13,6 +13,8 @@ on:
       - requirements.txt
       - requirements_dev.txt
 
+permissions: read-all
+
 jobs:
   python-black:
     runs-on: ubuntu-latest

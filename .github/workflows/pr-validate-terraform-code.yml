@@ -11,6 +11,8 @@ on:
       - .tflint-version
       - terraform/**
 
+permissions: read-all
+
 jobs:
   tflint:
     runs-on: ubuntu-latest
