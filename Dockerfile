@@ -31,11 +31,6 @@ RUN wget -q https://github.com/aquasecurity/tfsec/releases/download/v${TFSEC_VER
     tar xzf tfsec_${TFSEC_VERSION}_linux_amd64.tar.gz && \
     rm tfsec_${TFSEC_VERSION}_linux_amd64.tar.gz
 
-ENV TERRASCAN_VERSION="1.17.1"
-RUN wget -q https://github.com/tenable/terrascan/releases/download/v${TERRASCAN_VERSION}/terrascan_${TERRASCAN_VERSION}_Linux_arm64.tar.gz && \
-    tar xzf terrascan_${TERRASCAN_VERSION}_Linux_arm64.tar.gz && \
-    rm terrascan_${TERRASCAN_VERSION}_Linux_arm64.tar.gz
-
 WORKDIR /usr/bin/src
 COPY requirements_dev.txt ./
 RUN pip install -r requirements_dev.txt --no-cache-dir

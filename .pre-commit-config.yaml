@@ -61,5 +61,3 @@ repos:
   - id: terraform_checkov
     args:
     - '--args=--quiet'
-  - id: terrascan
-    files: ^terraform/
