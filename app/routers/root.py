@@ -14,6 +14,12 @@ from .users import User
 router = APIRouter(tags=["root"])
 
 
+@router.get("/healthcheck")
+async def healthcheck():
+    # TODO: Monitor app performance
+    return {"status": "healthy"}
+
+
 @router.get("/")
 async def index(auth: Auth = Depends(Auth())):
     user = await auth.user_query.only("email")
