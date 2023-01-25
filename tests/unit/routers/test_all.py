@@ -1,26 +1,10 @@
-from fastapi.testclient import TestClient
 from pytest import mark
 
 from app.routers import resource_routers
 
-from ..utils import ApiTestClient, AuthContext
+from ..utils import ApiTestClient
 
 pytestmark = mark.anyio
-
-
-async def test_healthcheck_action(client: TestClient):
-    response = client.get("/healthcheck")
-    assert response.status_code == 200
-    json = response.json()
-    assert json["status"] == "healthy"
-
-
-async def test_index_action(auth_client: ApiTestClient, auth_context: AuthContext):
-    response = auth_client.get("/")
-    assert response.status_code == 200
-    assert response.json() == f"Welcome {auth_context.user.email}!"
-
-
 prefixes = ["/users", "/organizations", "/projects"]
 
 

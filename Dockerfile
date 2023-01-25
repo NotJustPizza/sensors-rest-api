@@ -9,7 +9,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-cache
 
 CMD ["uvicorn", "app.run:app", "--host", "0.0.0.0"]
-HEALTHCHECK CMD curl --fail http://localhost/healthcheck || exit 1
+HEALTHCHECK CMD curl --fail http://localhost/actions/healthcheck || exit 1
 
 FROM base-env as prod-env
 

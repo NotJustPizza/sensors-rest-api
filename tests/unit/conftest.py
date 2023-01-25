@@ -57,7 +57,7 @@ async def auth_client(
     request, auth_context: AuthContext, client: ApiTestClient
 ) -> ApiTestClient:
     response = client.post(
-        "/login",
+        "/actions/login",
         data={
             "username": auth_context.user.email,
             "password": auth_context.password,

@@ -6,24 +6,18 @@ from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist, ValidationError
 
 from ..auth import Token
-from ..dependencies import Auth, get_settings
+from ..dependencies import get_settings
 from ..exceptions import AuthException
 from ..settings import Settings
 from .users import User
 
-router = APIRouter(tags=["root"])
+router = APIRouter(prefix="/actions", tags=["actions"])
 
 
 @router.get("/healthcheck")
 async def healthcheck():
     # TODO: Monitor app performance
     return {"status": "healthy"}
-
-
-@router.get("/")
-async def index(auth: Auth = Depends(Auth())):
-    user = await auth.user_query.only("email")
-    return f"Welcome {user.email}!"
 
 
 class TokenPydantic(BaseModel):

@@ -80,7 +80,7 @@ resource "kubernetes_deployment" "rest_api" {
 
           readiness_probe {
             http_get {
-              path = "/healthcheck"
+              path = "/actions/healthcheck"
               port = 8000
             }
             failure_threshold = 2
@@ -90,7 +90,7 @@ resource "kubernetes_deployment" "rest_api" {
 
           liveness_probe {
             http_get {
-              path = "/"
+              path = "/actions/healthcheck"
               port = 8000
             }
 
