@@ -46,6 +46,8 @@ repos:
   rev: 1ed79063e3672a1c6d91ee27cb648e07a7465344
   hooks:
   - id: bandit
+    args: ["-c", "pyproject.toml"]
+    additional_dependencies: ["bandit[toml]"]
 - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
   # rev: v1.3.1
   rev: a4a1eb373d8e809534a46855a58be427a0a29219

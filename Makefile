@@ -43,6 +43,12 @@ python-pytest: ENTRYPOINT=pytest
 python-pytest: IMAGE_ARGS=. --verbose
 python-pytest: _docker-run-default
 
+python-poetry-update: ENTRYPOINT=poetry
+python-poetry-update: IMAGE_ARGS=update --lock
+python-poetry-update: _docker-run-default
+# Rebuild image based on new lock file
+python-poetry-update: docker-build
+
 _docker-run-terraform: ENTRYPOINT=terraform
 _docker-run-terraform: DOCKER_ARGS=-it
 _docker-run-terraform: _docker-run
