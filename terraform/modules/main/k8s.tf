@@ -1,7 +1,7 @@
 resource "vultr_kubernetes" "k8s" {
   region  = data.vultr_region.amsterdam.id
   label   = "${var.project}-${var.environment}"
-  version = coalesce(var.k8s_version, "v1.25.4+1")
+  version = coalesce(var.k8s_version, "v1.25.6+2")
 
   node_pools {
     node_quantity = var.k8s_nodes_config.node_quantity
