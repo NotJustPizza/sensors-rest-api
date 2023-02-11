@@ -4,7 +4,7 @@ resource "kubernetes_deployment" "rest_api" {
   metadata {
     name      = "rest-api"
     labels    = local.rest_api_labels
-    namespace = var.environment
+    namespace = kubernetes_namespace.namespace.metadata[0].name
   }
 
   spec {

@@ -2,7 +2,7 @@ resource "kubernetes_stateful_set" "database" {
   metadata {
     name      = "database"
     labels    = local.database_labels
-    namespace = var.environment
+    namespace = kubernetes_namespace.namespace.metadata[0].name
   }
 
   spec {

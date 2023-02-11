@@ -2,7 +2,7 @@ resource "kubernetes_persistent_volume_claim" "database" {
   metadata {
     name      = "database"
     labels    = local.database_labels
-    namespace = var.environment
+    namespace = kubernetes_namespace.namespace.metadata[0].name
   }
   spec {
     access_modes = ["ReadWriteOnce"]

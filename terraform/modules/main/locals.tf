@@ -6,12 +6,12 @@ locals {
   rest_api_labels = {
     application = "rest-api"
     project     = var.project
-    environment = var.environment
+    environment = kubernetes_namespace.namespace.metadata[0].name
   }
 
   database_labels = {
     application = "database"
     project     = var.project
-    environment = var.environment
+    environment = kubernetes_namespace.namespace.metadata[0].name
   }
 }

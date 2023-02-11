@@ -12,3 +12,13 @@ resource "vultr_kubernetes" "k8s" {
     max_nodes     = var.k8s_nodes_config.max_nodes
   }
 }
+
+resource "kubernetes_namespace" "namespace" {
+  metadata {
+    name = var.environment
+    labels = {
+      project     = var.project
+      environment = var.environment
+    }
+  }
+}
