@@ -1,11 +1,11 @@
+from copy import copy
 from typing import Any, Dict, List, Type
 from uuid import UUID
 
 from dateutil.parser import parse as parse_date
 from fastapi.testclient import TestClient
 
-from app.models.base import AbstractModel
-from app.models.user import User
+from app.models import AbstractModel, User
 
 
 def is_uuid(data: Any) -> bool:
@@ -45,23 +45,49 @@ class AuthContext:
 
 
 class ApiTestClient(TestClient):
-    def api_list(
-        self,
-        api_prefix: str,
-        expected_total: int,
-    ) -> List[dict]:
-        response = self.get(api_prefix)
+    def api_get_page(
+        self, api_prefix: str, page: int, page_size: int, page_total: int, total: int
+    ) -> Dict:
+        response = self.get(api_prefix, params={"page": page})
         json, status_code = response.json(), response.status_code
         assert (
             status_code == 200
         ), f"Expected status code 200, got {status_code}. API returned: {json}"
         # Check that pagination is working correctly
-        assert json["total"] == expected_total
-        assert len(json["items"]) == expected_total
-        assert json["page"] == 1
-        assert json["size"] == 50
+        assert (
+            json["total"] == total
+        ), f"Total from json is: {json['total']}, expected: {total}"
+        assert (
+            len(json["items"]) == page_total
+        ), f"Page total is: {json['items']}, expected: {page_total}"
+        assert json["page"] == page
+        assert json["size"] == page_size
 
         return json["items"]
+
+    def api_list(self, api_prefix: str, expected_total: int) -> List[dict]:
+        page = 1
+        page_size = 50
+        unprocessed_items = copy(expected_total)
+        items: List[dict] = []
+
+        while unprocessed_items > 0:
+            if unprocessed_items >= page_size:
+                page_total = page_size
+            else:
+                page_total = unprocessed_items
+            items.extend(
+                self.api_get_page(
+                    api_prefix, page, page_size, page_total, expected_total
+                )
+            )
+            page += 1
+            unprocessed_items -= page_size
+
+        assert (
+            len(items) == expected_total
+        ), f"Total is: {len(items)}, expected: {expected_total}."
+        return items
 
     def api_get(self, api_prefix: str, obj_uuid: UUID) -> dict:
         response = self.get(f"{api_prefix}/{obj_uuid}")

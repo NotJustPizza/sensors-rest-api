@@ -1,6 +1,8 @@
 from tortoise import fields
 
-from .base import AbstractModel, NameMixin, TimestampMixin
+from .abstract import AbstractModel
+from .device import Device
+from .mixins import NameMixin, TimestampMixin
 
 
 class Project(NameMixin, TimestampMixin, AbstractModel):
@@ -9,8 +11,7 @@ class Project(NameMixin, TimestampMixin, AbstractModel):
         "models.Organization", related_name="projects", null=False
     )
 
+    devices: fields.ReverseRelation[Device]
+
     class PydanticMeta:
-        exclude = ("organization",)
-
-
-__models__ = [Project]
+        exclude = ("organization", "devices")

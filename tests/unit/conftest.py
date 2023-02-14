@@ -5,11 +5,13 @@ from typing import Iterator
 from pytest import fixture
 from tortoise.contrib.test import finalizer, initializer
 
-from app.main import create_app, db_models
-from app.models.user import User
+from app.main import create_app
+from app.models import User
 from app.settings import Settings
 
 from .utils import ApiTestClient, AuthContext
+
+pytest_plugins = "tests.unit.fixtures"
 
 auth_pass: str = token_hex(32)
 settings = Settings(
@@ -30,18 +32,17 @@ def event_loop() -> Iterator[AbstractEventLoop]:
     loop.close()
 
 
-@fixture(scope="function")
+@fixture(scope="function", autouse=True)
 def client(request, event_loop: BaseEventLoop) -> Iterator[ApiTestClient]:
     app = create_app(settings)
-    db_models.append("tests.unit.models.fixtures")
-    initializer(db_models, loop=event_loop)
+    initializer(["app.models"], loop=event_loop)
     with ApiTestClient(app) as c:
         yield c
     request.addfinalizer(finalizer)
 
 
 @fixture(scope="function", params=[{"admin": True}, {"admin": False}])
-async def auth_context(request, client: ApiTestClient) -> AuthContext:
+async def auth_context(request) -> AuthContext:
     if request.param["admin"]:
         # Admin user is created at startup by application
         user = await User.get(email="admin@sensors-api.com")
@@ -50,6 +51,11 @@ async def auth_context(request, client: ApiTestClient) -> AuthContext:
             email="auth@sensors-api.com", password=auth_pass, is_admin=False
         )
     return AuthContext(user=user, password=auth_pass)
+
+
+@fixture(scope="function", name="auth_user")
+async def auth_user(auth_context: AuthContext):
+    return auth_context.user
 
 
 @fixture(scope="function", params=[{"scope": "global"}])

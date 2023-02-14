@@ -2,49 +2,38 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi_pagination import Page
-from fastapi_pagination.ext.tortoise import paginate
 from tortoise.expressions import Q
 from tortoise.functions import Count
 
 from ..dependencies import Auth
-from ..exceptions import PermissionException
-from ..models.organization import Organization, OrganizationMemberships
+from ..models import Membership, Organization
 from ..pydantic import (
     OrganizationCreatePydantic,
     OrganizationOutPydantic,
     OrganizationUpdatePydantic,
 )
+from .utils import APIResolver
 
 router = APIRouter(prefix="/organizations", tags=["organizations"])
+resolver = APIResolver(OrganizationOutPydantic, Organization)
 
 
 @router.get("/", response_model=Page[OrganizationOutPydantic])
 async def retrieve_organizations(
     auth: Auth = Depends(Auth(scope="organizations:read")),
 ):
-    user = await auth.user_query.only("is_admin")
-    if user.is_admin:
-        query = Organization.all()
-    else:
-        query = Organization.filter(users__pk=auth.token.sub)
-    return await paginate(query, prefetch_related=True)
+    filter_subquery = Q(users__pk=auth.token.sub)
+    return await resolver.retrieve_page(auth, filter_subquery)
 
 
 @router.get("/{uuid}", response_model=OrganizationOutPydantic)
 async def retrieve_organization(
     uuid: UUID, auth: Auth = Depends(Auth(scope="organizations:read"))
 ):
-    user = await auth.user_query.only("is_admin").annotate(
-        has_organization=Count(
-            "memberships", _filter=Q(memberships__organization_id=uuid)
-        )
+    read_perm_subquery = Count(
+        "memberships", _filter=Q(memberships__organization_id=uuid)
     )
-    # noinspection PyUnresolvedReferences
-    if not user.is_admin and not user.has_organization:
-        raise PermissionException("Missing organization permissions.")
-
-    organization = await Organization.get(pk=uuid)
-    return await OrganizationOutPydantic.from_tortoise_orm(organization)
+    return await resolver.retrieve_item(auth, uuid, [read_perm_subquery])
 
 
 @router.post("/", response_model=OrganizationOutPydantic, status_code=201)
@@ -53,7 +42,7 @@ async def create_organization(
     auth: Auth = Depends(Auth(scope="organizations:write")),
 ):
     organization = await Organization.create(**data.dict(exclude_unset=True))
-    await OrganizationMemberships.create(
+    await Membership.create(
         user_id=auth.user_uuid, organization_id=organization.uuid, is_admin=True
     )
     return await OrganizationOutPydantic.from_tortoise_orm(organization)
@@ -65,22 +54,11 @@ async def update_organization(
     data: OrganizationUpdatePydantic,
     auth: Auth = Depends(Auth(scope="organizations:write")),
 ):
-    user = await auth.user_query.only("is_admin").annotate(
-        is_organization_admin=Count(
-            "organizations",
-            _filter=Q(memberships__organization_id=uuid, memberships__is_admin=True),
-        )
+    write_perm_subquery = Count(
+        "organizations",
+        _filter=Q(memberships__organization_id=uuid, memberships__is_admin=True),
     )
-    # noinspection PyUnresolvedReferences
-    if not user.is_admin and not user.is_organization_admin:
-        raise PermissionException("Missing organization admin permissions.")
-
-    organization = await Organization.get(pk=uuid)
-    for key, value in data.dict(exclude_unset=True).items():
-        setattr(organization, key, value)
-
-    await organization.save()
-    return await OrganizationOutPydantic.from_tortoise_orm(organization)
+    return await resolver.update_item(auth, uuid, data, [write_perm_subquery])
 
 
 @router.delete("/{uuid}", status_code=204)
@@ -88,15 +66,8 @@ async def delete_organization(
     uuid: UUID,
     auth: Auth = Depends(Auth(scope="organizations:write")),
 ):
-    user = await auth.user_query.only("is_admin").annotate(
-        is_organization_admin=Count(
-            "organizations",
-            _filter=Q(memberships__organization_id=uuid, memberships__is_admin=True),
-        )
+    write_perm_subquery = Count(
+        "organizations",
+        _filter=Q(memberships__organization_id=uuid, memberships__is_admin=True),
     )
-    # noinspection PyUnresolvedReferences
-    if not user.is_admin and not user.is_organization_admin:
-        raise PermissionException("Missing organization admin permissions.")
-
-    organization = await Organization.get(pk=uuid).only("uuid")
-    await organization.delete()
+    return await resolver.delete_item(auth, uuid, [write_perm_subquery])

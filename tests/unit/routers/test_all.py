@@ -5,7 +5,15 @@ from app.routers import resource_routers
 from ..utils import ApiTestClient
 
 pytestmark = mark.anyio
-prefixes = ["/users", "/organizations", "/projects"]
+prefixes = [
+    "/devices",
+    "/dimensions",
+    "/measures",
+    "/memberships",
+    "/organizations",
+    "/projects",
+    "/users",
+]
 
 
 async def test_prefixes_match_routers():

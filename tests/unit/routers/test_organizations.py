@@ -2,13 +2,16 @@ from typing import List
 
 from pytest import mark
 
-from app.models.organization import Organization
+from app.models import Organization
 
-from ..asserts import assert_object_matches_json, assert_object_was_deleted
+from ..asserts import (
+    assert_object_matches_json,
+    assert_object_was_deleted,
+    assert_objects_matches_jsons,
+)
 from ..utils import ApiTestClient
 
 pytestmark = mark.anyio
-pytest_plugins = "tests.unit.routers.fixtures"
 
 
 @mark.parametrize(
@@ -27,8 +30,7 @@ async def test_retrieve_organizations(
     expected_total: int,
 ):
     items = auth_client.api_list("/organizations", expected_total)
-    for i in range(expected_total):
-        await assert_object_matches_json(organizations[i], items[i])
+    await assert_objects_matches_jsons(organizations, items)
 
 
 @mark.parametrize(
@@ -54,6 +56,7 @@ async def test_create_organization(auth_client: ApiTestClient):
     item = auth_client.api_create("/organizations", data)
     organization = await Organization.get(**data)
     await assert_object_matches_json(organization, item)
+    await assert_object_matches_json(organization, data)
 
 
 @mark.parametrize(

@@ -32,7 +32,7 @@ async def retrieve_user(uuid: UUID, auth: Auth = Depends(Auth(scope="users:read"
     elif auth_user.is_admin:
         user = await User.get(pk=uuid)
     else:
-        raise PermissionException("Missing admin permissions.")
+        raise PermissionException()
 
     return await UserOutPydantic.from_tortoise_orm(user)
 
@@ -43,7 +43,7 @@ async def create_user(
 ):
     auth_user = await auth.user_query
     if not auth_user.is_admin:
-        raise PermissionException("Missing admin permissions.")
+        raise PermissionException()
 
     user = await User.create(**data.dict(exclude_unset=True))
     return await UserOutPydantic.from_tortoise_orm(user)
@@ -61,7 +61,7 @@ async def update_user(
     elif auth_user.is_admin:
         user = await User.get(pk=uuid)
     else:
-        raise PermissionException("Missing admin permissions.")
+        raise PermissionException()
 
     for key, value in data.dict(exclude_unset=True).items():
         setattr(user, key, value)
@@ -80,6 +80,6 @@ async def delete_user(
     elif auth_user.is_admin:
         user = User.get(pk=uuid).only("uuid")
     else:
-        raise PermissionException("Missing admin permissions.")
+        raise PermissionException()
 
     await user.delete()

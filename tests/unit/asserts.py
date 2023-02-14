@@ -1,7 +1,9 @@
+from typing import Dict, List
+
 from pytest import raises
 from tortoise.exceptions import DoesNotExist
 
-from app.models.base import AbstractModel
+from app.models import AbstractModel
 
 from .utils import is_date, is_uuid
 
@@ -46,7 +48,7 @@ async def assert_object_matches_json(
             # Uuid has to be converted to string fist
             obj_value = str(obj_value)
 
-        # Ensure that created_at and modified_at are valid dates
+        # Ensure that *_at are valid dates
         if key.endswith("_at"):
             assert is_date(value)
             # Date has to be in iso format fist
@@ -56,6 +58,14 @@ async def assert_object_matches_json(
         assert (
             value == obj_value
         ), f"{value} from json doesn't match {obj_value} from object for key: {key}"
+
+
+async def assert_objects_matches_jsons(
+    objs: List[AbstractModel], obj_jsons: List[Dict]
+):
+    for obj_json in obj_jsons:
+        obj = next(item for item in objs if str(item.uuid) == str(obj_json["uuid"]))
+        await assert_object_matches_json(obj, obj_json)
 
 
 async def assert_object_was_deleted(obj: AbstractModel):

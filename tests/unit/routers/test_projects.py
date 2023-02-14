@@ -2,14 +2,16 @@ from typing import List
 
 from pytest import mark
 
-from app.models.organization import Organization
-from app.models.project import Project
+from app.models import Organization, Project
 
-from ..asserts import assert_object_matches_json, assert_object_was_deleted
+from ..asserts import (
+    assert_object_matches_json,
+    assert_object_was_deleted,
+    assert_objects_matches_jsons,
+)
 from ..utils import ApiTestClient
 
 pytestmark = mark.anyio
-pytest_plugins = "tests.unit.routers.fixtures"
 
 
 @mark.parametrize(
@@ -26,8 +28,7 @@ async def test_retrieve_projects(
     auth_client: ApiTestClient, projects: List[Project], expected_total: int
 ):
     items = auth_client.api_list("/projects", expected_total)
-    for i in range(expected_total):
-        await assert_object_matches_json(projects[i], items[i])
+    await assert_objects_matches_jsons(projects, items)
 
 
 @mark.parametrize(
@@ -53,6 +54,7 @@ async def test_create_project(
     item = auth_client.api_create("/projects", data)
     project = await Project.get(**data)
     await assert_object_matches_json(project, item)
+    await assert_object_matches_json(project, data)
 
 
 @mark.parametrize(
@@ -65,8 +67,8 @@ async def test_update_project(
     projects: List[Project],
     organizations: List[Organization],
 ):
-    project = projects[0]
-    data = {"name": "moon", "organization_id": str(organizations[1].uuid)}
+    project, new_organization = projects[0], organizations[0]
+    data = {"name": "moon", "organization_id": str(new_organization.uuid)}
     item = auth_client.api_update("/projects", project.uuid, data)
     await assert_object_matches_json(project, item, refresh=True)
     await assert_object_matches_json(project, data)

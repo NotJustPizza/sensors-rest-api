@@ -1,33 +1,19 @@
 from tortoise import fields
 
-from .base import AbstractModel, NameMixin, TimestampMixin
+from .abstract import AbstractModel
+from .membership import Membership
+from .mixins import TimestampMixin, UniqueNameMixin
 from .project import Project
 
 
-class OrganizationMemberships(AbstractModel):
-    is_admin = fields.BooleanField(null=False, default=False)
-    user = fields.ForeignKeyField("models.User", related_name="memberships")
-    organization = fields.ForeignKeyField(
-        "models.Organization", related_name="memberships"
-    )
-
-    class Meta:
-        table = "organization_memberships"
-
-    class PydanticMeta:
-        exclude = ("user", "organization")
-
-
-class Organization(NameMixin, TimestampMixin, AbstractModel):
+class Organization(UniqueNameMixin, TimestampMixin, AbstractModel):
     is_active = fields.BooleanField(null=False, default=True)
-    projects: fields.ReverseRelation[Project]
     users = fields.ManyToManyField(
-        "models.User", related_name="organizations", through="organization_memberships"
+        "models.User", related_name="organizations", through="membership"
     )
-    memberships: fields.ReverseRelation[OrganizationMemberships]
+
+    memberships: fields.ReverseRelation[Membership]
+    projects: fields.ReverseRelation[Project]
 
     class PydanticMeta:
         exclude = ("users",)
-
-
-__models__ = [Organization, OrganizationMemberships]

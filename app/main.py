@@ -3,8 +3,7 @@ from fastapi_pagination import add_pagination
 from tortoise.contrib.fastapi import register_tortoise
 
 from .dependencies import get_settings
-from .models import db_models
-from .models.user import User
+from .models import User
 from .routers import routers
 from .settings import Settings
 
@@ -28,7 +27,7 @@ def create_app(settings: Settings) -> FastAPI:
     register_tortoise(
         app,
         db_url=settings.db_url,
-        modules={"models": db_models},
+        modules={"models": ["app.models"]},
         generate_schemas=True,
         add_exception_handlers=True,
     )
