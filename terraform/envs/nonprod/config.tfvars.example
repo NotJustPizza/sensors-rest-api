@@ -1,4 +1,4 @@
-environment = "dev"
+environment = "nonprod"
 credentials = {
   cloudflare = {
     email = "my_cloudflare_email"

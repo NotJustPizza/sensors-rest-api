@@ -47,7 +47,7 @@ jobs:
         with:
           path: terraform
 
-  terraform-plan-dev:
+  terraform-plan-nonprod:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -55,21 +55,21 @@ jobs:
       - name: create config files
         run: |
           cat > config.tfbackend << EOL
-            ${{ secrets.CONFIG_TFBACKEND_DEV }}
+            ${{ secrets.CONFIG_TFBACKEND_NONPROD }}
           EOL
           cat > config.tfvars << EOL
-            ${{ secrets.CONFIG_TFVARS_DEV }}
+            ${{ secrets.CONFIG_TFVARS_NONPROD }}
             repository="${{ github.repository }}"
           EOL
       - name: terraform validate
         uses: dflook/terraform-validate@v1.29.1
         with:
-          path: terraform/envs/dev
+          path: terraform/envs/nonprod
           backend_config_file: config.tfbackend
       - name: terraform plan
         uses: dflook/terraform-plan@v1.29.1
         with:
-          path: terraform/envs/dev
+          path: terraform/envs/nonprod
           backend_config_file: config.tfbackend
           var_file: config.tfvars
 

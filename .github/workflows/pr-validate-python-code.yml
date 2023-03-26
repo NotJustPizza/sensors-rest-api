@@ -10,8 +10,6 @@ on:
       - Dockerfile
       - tests/**
       - src/**
-      - requirements.txt
-      - requirements_dev.txt
 
 permissions: read-all
 
@@ -38,7 +36,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
-      - name: build dev docker image
+      - name: build dev tools docker image
         run: |
           docker build . --target dev-env -t dev
       - name: run pytest with coverage

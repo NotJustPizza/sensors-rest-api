@@ -30,7 +30,7 @@ jobs:
         run: |
           docker push ${{ env.IMAGE_ID}}
 
-  terraform-apply-dev:
+  terraform-apply-nonprod:
     runs-on: ubuntu-latest
     needs:
       - push-new-image
@@ -40,48 +40,48 @@ jobs:
       - name: create config files
         run: |
           cat > config.tfbackend << EOL
-            ${{ secrets.CONFIG_TFBACKEND_DEV }}
+            ${{ secrets.CONFIG_TFBACKEND_NONPROD }}
           EOL
           cat > config.tfvars << EOL
-            ${{ secrets.CONFIG_TFVARS_DEV }}
+            ${{ secrets.CONFIG_TFVARS_NONPROD }}
             repository="${{ github.repository }}"
           EOL
       - name: terraform apply
         uses: dflook/terraform-apply@v1.29.1
         with:
-          path: terraform/envs/dev
+          path: terraform/envs/nonprod
           backend_config_file: config.tfbackend
           var_file: config.tfvars
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  terraform-destroy-dev:
+  terraform-destroy-nonprod:
     runs-on: ubuntu-latest
     needs:
-      - terraform-apply-dev
+      - terraform-apply-nonprod
     steps:
       - name: checkout
         uses: actions/checkout@v3
       - name: create config files
         run: |
           cat > config.tfbackend << EOL
-            ${{ secrets.CONFIG_TFBACKEND_DEV }}
+            ${{ secrets.CONFIG_TFBACKEND_NONPROD }}
           EOL
           cat > config.tfvars << EOL
-            ${{ secrets.CONFIG_TFVARS_DEV }}
+            ${{ secrets.CONFIG_TFVARS_NONPROD }}
             repository="${{ github.repository }}"
           EOL
       - name: terraform destroy
         uses: dflook/terraform-destroy@v1.29.1
         with:
-          path: terraform/envs/dev
+          path: terraform/envs/nonprod
           backend_config_file: config.tfbackend
           var_file: config.tfvars
 
   terraform-apply-prod:
     runs-on: ubuntu-latest
     needs:
-      - terraform-apply-dev
+      - terraform-apply-nonprod
     steps:
       - name: checkout
         uses: actions/checkout@v3
