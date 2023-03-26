@@ -1,5 +1,5 @@
-DEV_IMAGE_NAME = dev-env
-DEV_IMAGE_TARGET = dev-env
+DEV_IMAGE_NAME = dev-tools
+DEV_IMAGE_TARGET = dev-tools
 
 docker-build: IMAGE=$(DEV_IMAGE_NAME)
 docker-build: IMAGE_TARGET=$(DEV_IMAGE_TARGET)
@@ -35,19 +35,24 @@ pre-commit-run: _docker-run-default
 pre-commit-install:
 	cp pre-commit-hook.sh .git/hooks/pre-commit
 
-python-black: ENTRYPOINT=black
-python-black: IMAGE_ARGS=.
-python-black: _docker-run-default
+black: ENTRYPOINT=black
+black: IMAGE_ARGS=.
+black: _docker-run-default
 
-python-pytest: ENTRYPOINT=pytest
-python-pytest: IMAGE_ARGS=. --verbose
-python-pytest: _docker-run-default
+pytest: ENTRYPOINT=pytest
+pytest: IMAGE_ARGS=. --verbose
+pytest: _docker-run-default
 
-python-poetry-update: ENTRYPOINT=poetry
-python-poetry-update: IMAGE_ARGS=update --lock
-python-poetry-update: _docker-run-default
+poetry-show: ENTRYPOINT=poetry
+poetry-show: IMAGE_WORKDIR=/opt/src
+poetry-show: IMAGE_ARGS=show --outdated
+poetry-show: _docker-run
+
+poetry-update: ENTRYPOINT=poetry
+poetry-update: IMAGE_ARGS=update --lock
+poetry-update: _docker-run-default
 # Rebuild image based on new lock file
-python-poetry-update: docker-build
+poetry-update: docker-build
 
 _docker-run-terraform: ENTRYPOINT=terraform
 _docker-run-terraform: DOCKER_ARGS=-it
