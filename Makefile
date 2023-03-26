@@ -1,13 +1,13 @@
-DEV_IMAGE_NAME = dev-tools
-DEV_IMAGE_TARGET = dev-tools
+nonprod_IMAGE_NAME = nonprod-tools
+nonprod_IMAGE_TARGET = nonprod-tools
 
-docker-build: IMAGE=$(DEV_IMAGE_NAME)
-docker-build: IMAGE_TARGET=$(DEV_IMAGE_TARGET)
+docker-build: IMAGE=$(nonprod_IMAGE_NAME)
+docker-build: IMAGE_TARGET=$(nonprod_IMAGE_TARGET)
 docker-build: IMAGE_VERSION=latest
 docker-build:
 	docker buildx build . --progress=tty -t $(IMAGE):$(IMAGE_VERSION) --target $(IMAGE_TARGET)
 
-_docker-run: IMAGE=$(DEV_IMAGE_NAME)
+_docker-run: IMAGE=$(nonprod_IMAGE_NAME)
 _docker-run: IMAGE_VERSION=latest
 _docker-run: PROJECT_DIR=$(shell pwd)
 _docker-run: PROJECT_MOUNT_DIR=/mnt/project
@@ -62,20 +62,21 @@ terraform-fmt: IMAGE_WORKDIR=/mnt/project/terraform
 terraform-fmt: IMAGE_ARGS=fmt -recursive .
 terraform-fmt: _docker-run-terraform
 
-_docker-run-terraform-dev: IMAGE_WORKDIR=/mnt/project/terraform/envs/dev
-_docker-run-terraform-dev: _docker-run-terraform
+_docker-run-terraform-nonprod: IMAGE_WORKDIR=/mnt/project/terraform/envs/nonprod
+_docker-run-terraform-nonprod: _docker-run-terraform
 
-terraform-init-dev: IMAGE_ARGS=init -backend-config config.tfbackend
-terraform-init-dev: _docker-run-terraform-dev
+terraform-init-nonprod: IMAGE_ARGS=init -backend-config config.tfbackend
+terraform-init-nonprod: _docker-run-terraform-nonprod
 
-terraform-plan-dev: IMAGE_ARGS=plan -var-file config.tfvars
-terraform-plan-dev: _docker-run-terraform-dev
+terraform-plan-nonprod: IMAGE_ARGS=plan -var-file config.tfvars
+terraform-plan-nonprod: _docker-run-terraform-nonprod
 
-terraform-apply-dev: IMAGE_ARGS=apply -var-file config.tfvars
-terraform-apply-dev: _docker-run-terraform-dev
 
-terraform-destroy-dev: IMAGE_ARGS=destroy -var-file config.tfvars
-terraform-destroy-dev: _docker-run-terraform-dev
+terraform-apply-nonprod: IMAGE_ARGS=apply -var-file config.tfvars
+terraform-apply-nonprod: _docker-run-terraform-nonprod
+
+terraform-destroy-nonprod: IMAGE_ARGS=destroy -var-file config.tfvars
+terraform-destroy-nonprod: _docker-run-terraform-nonprod
 
 _docker-run-terraform-prod: IMAGE_WORKDIR=/mnt/project/terraform/envs/prod
 _docker-run-terraform-prod: _docker-run-terraform
