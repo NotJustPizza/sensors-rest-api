@@ -18,18 +18,18 @@ repos:
   hooks:
   - id: shellcheck
 - repo: https://github.com/pycqa/isort
-  # rev: 5.11.4
-  rev: 98390f5fde8f904f16a4e290a2aabed80d0951dc
+  # rev: 5.12.0
+  rev: e44834b7b294701f596c9118d6c370f86671a50d
   hooks:
   - id: isort
 - repo: https://github.com/psf/black
-  # rev: 22.12.0
-  rev: 2ddea293a88919650266472186620a98a4a8bb37
+  # rev: 23.1.0
+  rev: b0d1fba7ac3be53c71fb0d3211d911e629f8aecb
   hooks:
   - id: black
 - repo: https://github.com/pre-commit/mirrors-mypy
-  # rev: v0.991
-  rev: 0b037c2b59aa62dc3be3287d175295f1a5547eb9
+  # rev: v1.1.1
+  rev: b176ead5d5b92b1d4e651c118017f8fd32de424a
   hooks:
   - id: mypy
     additional_dependencies:
@@ -42,8 +42,8 @@ repos:
     additional_dependencies:
     - 'flake8-bugbear==23.1.14'
 - repo: https://github.com/PyCQA/bandit
-  # rev: 1.7.4
-  rev: 1ed79063e3672a1c6d91ee27cb648e07a7465344
+  # rev: 1.7.5
+  rev: ca4faf2f82a7c68a088100f8ba2b8e56f9bdcfe3
   hooks:
   - id: bandit
     args: ["-c", "pyproject.toml"]
@@ -56,8 +56,8 @@ repos:
     args:
     - '--disable-telemetry'
 - repo: https://github.com/antonbabenko/pre-commit-terraform
-  # rev: v1.77.0
-  rev: 1d54ea2b9950097568c6a7a2e2bcb6d4b4ebfb61
+  # rev: v1.77.1
+  rev: 7fb95618a952c1b4e86f35ee9103d3a67a86df0d
   hooks:
   - id: terraform_fmt
   - id: terraform_tflint
