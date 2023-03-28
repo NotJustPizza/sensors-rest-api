@@ -5,6 +5,7 @@
 .cache
 __pycache__
 .pytest_cache
+.mypy_cache
 .terraform
 .terraform.lock.hcl
 .venv
