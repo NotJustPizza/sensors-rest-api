@@ -40,8 +40,9 @@ black: IMAGE_ARGS=.
 black: _docker-run-default
 
 pytest: ENTRYPOINT=pytest
+pytest: IMAGE_WORKDIR=/mnt/project/tests/unit
 pytest: IMAGE_ARGS=. --verbose
-pytest: _docker-run-default
+pytest: _docker-run
 
 poetry-show: ENTRYPOINT=poetry
 poetry-show: IMAGE_WORKDIR=/opt/src
