@@ -1,13 +1,13 @@
-nonprod_IMAGE_NAME = nonprod-tools
-nonprod_IMAGE_TARGET = nonprod-tools
+DEV_IMAGE_NAME = dev-tools
+DEV_IMAGE_TARGET = dev-tools
 
-docker-build: IMAGE=$(nonprod_IMAGE_NAME)
-docker-build: IMAGE_TARGET=$(nonprod_IMAGE_TARGET)
+docker-build: IMAGE=$(DEV_IMAGE_NAME)
+docker-build: IMAGE_TARGET=$(DEV_IMAGE_TARGET)
 docker-build: IMAGE_VERSION=latest
 docker-build:
 	docker buildx build . --progress=tty -t $(IMAGE):$(IMAGE_VERSION) --target $(IMAGE_TARGET)
 
-_docker-run: IMAGE=$(nonprod_IMAGE_NAME)
+_docker-run: IMAGE=$(DEV_IMAGE_NAME)
 _docker-run: IMAGE_VERSION=latest
 _docker-run: PROJECT_DIR=$(shell pwd)
 _docker-run: PROJECT_MOUNT_DIR=/mnt/project
@@ -70,7 +70,6 @@ terraform-init-nonprod: _docker-run-terraform-nonprod
 
 terraform-plan-nonprod: IMAGE_ARGS=plan -var-file config.tfvars
 terraform-plan-nonprod: _docker-run-terraform-nonprod
-
 
 terraform-apply-nonprod: IMAGE_ARGS=apply -var-file config.tfvars
 terraform-apply-nonprod: _docker-run-terraform-nonprod
