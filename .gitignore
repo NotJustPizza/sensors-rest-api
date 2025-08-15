@@ -6,6 +6,7 @@
 __pycache__
 .pytest_cache
 .mypy_cache
+.runner_system_id
 .terraform
 .terraform.lock.hcl
 .venv
@@ -13,3 +14,4 @@ __pycache__
 # Configuration vars
 config.tfbackend
 config.tfvars
+.env

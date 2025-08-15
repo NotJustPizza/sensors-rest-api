@@ -5,7 +5,7 @@ docker-build: IMAGE=$(DEV_IMAGE_NAME)
 docker-build: IMAGE_TARGET=$(DEV_IMAGE_TARGET)
 docker-build: IMAGE_VERSION=latest
 docker-build:
-	docker buildx build . --progress=tty -t $(IMAGE):$(IMAGE_VERSION) --target $(IMAGE_TARGET)
+	docker buildx build . -f docker/Dockerfile.web --progress=tty -t $(IMAGE):$(IMAGE_VERSION) --target $(IMAGE_TARGET)
 
 _docker-run: IMAGE=$(DEV_IMAGE_NAME)
 _docker-run: IMAGE_VERSION=latest

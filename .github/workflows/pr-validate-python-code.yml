@@ -7,7 +7,7 @@ on:
       - synchronize
     paths:
       - .github/workflows/pr-validate-python-code.yml
-      - Dockerfile
+      - docker/Dockerfile.web
       - tests/**
       - src/**
 

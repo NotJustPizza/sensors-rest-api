@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  dind:
+    container_name: dind_container
+    image: docker:23.0.3
+    restart: always
+    privileged: true
+    environment:
+      DOCKER_TLS_CERTDIR: ""
+    command:
+      - --storage-driver=overlay2
+  runner:
+    container_name: runner_container
+    restart: always
+    image: gitlab/gitlab-runner:alpine3.15-v15.10.1
+    depends_on:
+      - dind
+    environment:
+      - DOCKER_HOST=tcp://dind:2375
+    volumes:
+      - ../.gitlab-runner:/etc/gitlab-runner:z
+  register:
+    container_name:  register_container
+    restart: 'no'
+    image: gitlab/gitlab-runner:alpine3.15-v15.10.1
+    depends_on:
+      - dind
+    environment:
+      - CI_SERVER_URL=https://gitlab.com/
+      - REGISTRATION_TOKEN=${REGISTRATION_TOKEN}
+    command:
+      - register
+      - --non-interactive
+      - --locked=false
+      - --name=local-testing
+      - --executor=docker
+      - --docker-image=docker:20-dind
+      - --docker-volumes=/var/run/docker.sock:/var/run/docker.sock
+    volumes:
+      - ../.gitlab-runner:/etc/gitlab-runner:z
